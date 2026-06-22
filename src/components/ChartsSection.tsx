@@ -1,161 +1,173 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-  PieChart, Pie, Cell,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell, Legend,
   LineChart, Line,
 } from 'recharts';
 import { Transaction } from '@/lib/types';
-import { formatCurrency, getLast6Months, getMonthKey, getMonthLabel, formatDate } from '@/lib/utils';
+import { formatCurrency, getLast6Months, getMonthKey, getMonthLabel } from '@/lib/utils';
 
 interface ChartsSectionProps {
   transactions: Transaction[];
 }
 
-const COLORS = ['#818cf8', '#34d399', '#f87171', '#fbbf24', '#60a5fa', '#a78bfa', '#fb7185', '#4ade80'];
+const COLORS = ['#A78BFA', '#34D399', '#F87171', '#60A5FA', '#FBBF24', '#F472B6', '#4ADE80', '#C084FC'];
 
 const tooltipStyle = {
-  backgroundColor: '#1f2937',
-  border: '1px solid #374151',
-  borderRadius: '8px',
-  color: '#f9fafb',
+  background: 'rgba(14,14,26,0.95)',
+  border: '1px solid rgba(255,255,255,0.10)',
+  borderRadius: '12px',
+  color: '#F5F5FF',
+  fontSize: '12px',
 };
 
-const axisStyle = { fill: '#9ca3af', fontSize: 12 };
+const axisStyle = { fill: 'rgba(245,245,255,0.35)', fontSize: 11 };
 
-function MonthlyBarChart({ transactions }: { transactions: Transaction[] }) {
-  const data = useMemo(() => {
-    const months = getLast6Months();
-    return months.map(monthKey => {
-      const monthTx = transactions.filter(t => getMonthKey(t.date) === monthKey);
-      const ingresos = monthTx.filter(t => t.type === 'Ingreso').reduce((s, t) => s + Number(t.amount), 0);
-      const egresos = monthTx.filter(t => t.type === 'Egreso').reduce((s, t) => s + Number(t.amount), 0);
-      return { month: getMonthLabel(monthKey), ingresos, egresos };
-    });
-  }, [transactions]);
-
-  return (
-    <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
-      <h3 className="text-sm font-semibold text-gray-200 mb-4">Ingresos vs Egresos (últimos 6 meses)</h3>
-      <ResponsiveContainer width="100%" height={220}>
-        <BarChart data={data} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
-          <XAxis dataKey="month" tick={axisStyle} axisLine={false} tickLine={false} />
-          <YAxis tick={axisStyle} axisLine={false} tickLine={false} tickFormatter={v => `S/${(v / 1000).toFixed(0)}k`} width={48} />
-          <Tooltip
-            contentStyle={tooltipStyle}
-            formatter={(value) => formatCurrency(Number(value ?? 0))}
-          />
-          <Legend wrapperStyle={{ fontSize: 12, color: '#9ca3af' }} />
-          <Bar dataKey="ingresos" name="Ingresos" fill="#34d399" radius={[4, 4, 0, 0]} />
-          <Bar dataKey="egresos" name="Egresos" fill="#f87171" radius={[4, 4, 0, 0]} />
-        </BarChart>
-      </ResponsiveContainer>
-    </div>
-  );
-}
-
-function CategoryPieChart({ transactions }: { transactions: Transaction[] }) {
-  const data = useMemo(() => {
-    const map: Record<string, number> = {};
-    transactions.forEach(t => {
-      map[t.category] = (map[t.category] || 0) + Number(t.amount);
-    });
-    return Object.entries(map).map(([name, value]) => ({ name, value }));
-  }, [transactions]);
-
-  if (data.length === 0) {
-    return (
-      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 flex flex-col items-center justify-center min-h-[280px]">
-        <p className="text-gray-500 text-sm">Sin datos para mostrar</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
-      <h3 className="text-sm font-semibold text-gray-200 mb-4">Distribución por Categoría</h3>
-      <ResponsiveContainer width="100%" height={220}>
-        <PieChart>
-          <Pie
-            data={data}
-            cx="50%"
-            cy="50%"
-            innerRadius={55}
-            outerRadius={85}
-            paddingAngle={3}
-            dataKey="value"
-          >
-            {data.map((_, i) => (
-              <Cell key={i} fill={COLORS[i % COLORS.length]} />
-            ))}
-          </Pie>
-          <Tooltip
-            contentStyle={tooltipStyle}
-            formatter={(value) => formatCurrency(Number(value ?? 0))}
-          />
-          <Legend
-            wrapperStyle={{ fontSize: 11, color: '#9ca3af' }}
-            formatter={(value) => <span style={{ color: '#d1d5db' }}>{value}</span>}
-          />
-        </PieChart>
-      </ResponsiveContainer>
-    </div>
-  );
-}
-
-function BalanceLineChart({ transactions }: { transactions: Transaction[] }) {
-  const data = useMemo(() => {
-    const sorted = [...transactions].sort((a, b) => a.date.localeCompare(b.date));
-    let balance = 0;
-    return sorted.map(t => {
-      balance += t.type === 'Ingreso' ? Number(t.amount) : -Number(t.amount);
-      return { date: formatDate(t.date), balance };
-    });
-  }, [transactions]);
-
-  if (data.length === 0) {
-    return (
-      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 flex flex-col items-center justify-center min-h-[280px]">
-        <p className="text-gray-500 text-sm">Sin datos para mostrar</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
-      <h3 className="text-sm font-semibold text-gray-200 mb-4">Tendencia del Balance</h3>
-      <ResponsiveContainer width="100%" height={220}>
-        <LineChart data={data} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
-          <XAxis dataKey="date" tick={axisStyle} axisLine={false} tickLine={false} interval="preserveStartEnd" />
-          <YAxis tick={axisStyle} axisLine={false} tickLine={false} tickFormatter={v => `S/${(v / 1000).toFixed(0)}k`} width={48} />
-          <Tooltip
-            contentStyle={tooltipStyle}
-            formatter={(value) => formatCurrency(Number(value ?? 0))}
-          />
-          <Line
-            type="monotone"
-            dataKey="balance"
-            name="Balance"
-            stroke="#818cf8"
-            strokeWidth={2}
-            dot={false}
-            activeDot={{ r: 4, fill: '#818cf8' }}
-          />
-        </LineChart>
-      </ResponsiveContainer>
-    </div>
-  );
-}
+type Tab = 'monthly' | 'categories' | 'trend';
 
 export default function ChartsSection({ transactions }: ChartsSectionProps) {
+  const [activeTab, setActiveTab] = useState<Tab>('monthly');
+
+  const months = useMemo(() => getLast6Months(), []);
+
+  const monthlyData = useMemo(() =>
+    months.map(monthKey => {
+      const monthTx = transactions.filter(t => getMonthKey(t.date) === monthKey);
+      return {
+        name: getMonthLabel(monthKey),
+        Ingresos: monthTx.filter(t => t.type === 'Ingreso').reduce((s, t) => s + Number(t.amount), 0),
+        Egresos: monthTx.filter(t => t.type === 'Egreso').reduce((s, t) => s + Number(t.amount), 0),
+      };
+    }), [transactions, months]);
+
+  const categoryData = useMemo(() => {
+    const map: Record<string, number> = {};
+    transactions.filter(t => t.type === 'Egreso').forEach(t => {
+      map[t.category] = (map[t.category] ?? 0) + Number(t.amount);
+    });
+    return Object.entries(map)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 8);
+  }, [transactions]);
+
+  const trendData = useMemo(() =>
+    months.map(monthKey => {
+      const monthTx = transactions.filter(t => getMonthKey(t.date) === monthKey);
+      const ing = monthTx.filter(t => t.type === 'Ingreso').reduce((s, t) => s + Number(t.amount), 0);
+      const egr = monthTx.filter(t => t.type === 'Egreso').reduce((s, t) => s + Number(t.amount), 0);
+      return { name: getMonthLabel(monthKey), Balance: ing - egr };
+    }), [transactions, months]);
+
+  const tabs: { key: Tab; label: string }[] = [
+    { key: 'monthly', label: 'Mensual' },
+    { key: 'categories', label: 'Categorías' },
+    { key: 'trend', label: 'Tendencia' },
+  ];
+
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-      <MonthlyBarChart transactions={transactions} />
-      <CategoryPieChart transactions={transactions} />
-      <BalanceLineChart transactions={transactions} />
+    <div className="px-4 pb-6">
+      {/* Tab selector */}
+      <div
+        className="flex gap-1 mb-5 p-1 rounded-full"
+        style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}
+      >
+        {tabs.map(t => (
+          <button
+            key={t.key}
+            onClick={() => setActiveTab(t.key)}
+            className="flex-1 py-2 rounded-full text-[13px] font-medium transition-all duration-200 press"
+            style={{
+              background: activeTab === t.key ? '#A78BFA' : 'transparent',
+              color: activeTab === t.key ? '#fff' : 'rgba(245,245,255,0.45)',
+            }}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Monthly bar chart */}
+      {activeTab === 'monthly' && (
+        <>
+          <p className="text-[12px] mb-4" style={{ color: 'rgba(245,245,255,0.40)' }}>
+            Ingresos vs Egresos · últimos 6 meses
+          </p>
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart data={monthlyData} barCategoryGap="30%" barGap={3}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+              <XAxis dataKey="name" tick={axisStyle} axisLine={false} tickLine={false} />
+              <YAxis tick={axisStyle} axisLine={false} tickLine={false} tickFormatter={v => `S/${(v / 1000).toFixed(0)}k`} width={44} />
+              <Tooltip contentStyle={tooltipStyle} formatter={v => formatCurrency(Number(v ?? 0))} />
+              <Bar dataKey="Ingresos" fill="#34D399" radius={[5, 5, 0, 0]} />
+              <Bar dataKey="Egresos" fill="#F87171" radius={[5, 5, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </>
+      )}
+
+      {/* Category pie chart */}
+      {activeTab === 'categories' && (
+        <>
+          <p className="text-[12px] mb-4" style={{ color: 'rgba(245,245,255,0.40)' }}>
+            Distribución de egresos por categoría
+          </p>
+          {categoryData.length === 0 ? (
+            <p className="text-center text-[14px] py-12" style={{ color: 'rgba(245,245,255,0.30)' }}>
+              Sin egresos registrados
+            </p>
+          ) : (
+            <ResponsiveContainer width="100%" height={240}>
+              <PieChart>
+                <Pie
+                  data={categoryData}
+                  cx="50%"
+                  cy="42%"
+                  innerRadius={55}
+                  outerRadius={88}
+                  paddingAngle={3}
+                  dataKey="value"
+                  label={({ percent }) => `${((percent ?? 0) * 100).toFixed(0)}%`}
+                  labelLine={false}
+                >
+                  {categoryData.map((_, i) => (
+                    <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Legend formatter={v => <span style={{ color: 'rgba(245,245,255,0.60)', fontSize: 11 }}>{v}</span>} />
+                <Tooltip contentStyle={tooltipStyle} formatter={v => formatCurrency(Number(v ?? 0))} />
+              </PieChart>
+            </ResponsiveContainer>
+          )}
+        </>
+      )}
+
+      {/* Balance trend */}
+      {activeTab === 'trend' && (
+        <>
+          <p className="text-[12px] mb-4" style={{ color: 'rgba(245,245,255,0.40)' }}>
+            Balance neto · últimos 6 meses
+          </p>
+          <ResponsiveContainer width="100%" height={200}>
+            <LineChart data={trendData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+              <XAxis dataKey="name" tick={axisStyle} axisLine={false} tickLine={false} />
+              <YAxis tick={axisStyle} axisLine={false} tickLine={false} tickFormatter={v => `S/${(v / 1000).toFixed(0)}k`} width={44} />
+              <Tooltip contentStyle={tooltipStyle} formatter={v => formatCurrency(Number(v ?? 0))} />
+              <Line
+                type="monotone"
+                dataKey="Balance"
+                stroke="#A78BFA"
+                strokeWidth={2.5}
+                dot={{ fill: '#A78BFA', r: 4, strokeWidth: 0 }}
+                activeDot={{ r: 6, fill: '#A78BFA' }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </>
+      )}
     </div>
   );
 }
