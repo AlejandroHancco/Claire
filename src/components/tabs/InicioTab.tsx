@@ -195,11 +195,11 @@ export default function InicioTab({
                   className="relative overflow-hidden rounded-2xl"
                   style={{ border: '1px solid rgba(255,255,255,0.08)' }}
                 >
-                  {/* Red delete zone revealed on swipe — own transactions only */}
+                  {/* Red delete zone — sits BEHIND the card (z-index: 1), revealed on swipe */}
                   {isOwn && (
                     <div
                       className="absolute right-0 top-0 bottom-0 flex items-center justify-center"
-                      style={{ width: SWIPE_WIDTH, background: '#EF4444' }}
+                      style={{ width: SWIPE_WIDTH, background: '#EF4444', zIndex: 1 }}
                     >
                       <button
                         onClick={() => handleDelete(tx.id)}
@@ -225,7 +225,7 @@ export default function InicioTab({
                     </div>
                   )}
 
-                  {/* Sliding card — follows finger, snaps open/closed */}
+                  {/* Sliding card — sits ON TOP (z-index: 2), opaque so the delete zone is hidden until revealed */}
                   <div
                     ref={el => { cardEls.current[tx.id] = el; }}
                     onTouchStart={isOwn ? e => onTouchStart(tx.id, e) : undefined}
@@ -234,7 +234,9 @@ export default function InicioTab({
                     onTouchCancel={isOwn ? () => onTouchCancel(tx.id) : undefined}
                     className="flex items-center gap-3 px-3 py-3"
                     style={{
-                      background: 'rgba(255,255,255,0.05)',
+                      position: 'relative',
+                      zIndex: 2,
+                      background: 'var(--card-surface)',
                       transform: openId === tx.id ? `translateX(-${SWIPE_WIDTH}px)` : 'translateX(0)',
                       transition: SPRING,
                       touchAction: isOwn ? 'pan-y' : undefined,

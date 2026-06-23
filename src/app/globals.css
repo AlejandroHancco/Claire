@@ -17,6 +17,8 @@ html {
   --shimmer-clr: #A78BFA;
   --header-bg:   rgba(6, 6, 16, 0.80);
   --drop-bg:     rgba(18, 18, 32, 0.95);
+  /* Opaque surface for swipeable cards — must fully hide content behind them */
+  --card-surface: #12121E;
 }
 
 html.pink {
@@ -50,6 +52,7 @@ html.pink {
   --shimmer-clr: #E91E8C;
   --header-bg:   rgba(253, 232, 242, 0.90);
   --drop-bg:     rgba(249, 215, 232, 0.98);
+  --card-surface: #FDE8F2;
 }
 
 /* ── Reset & base ─────────────────────────────────────────────── */
