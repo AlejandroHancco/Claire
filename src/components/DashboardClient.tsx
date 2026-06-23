@@ -120,6 +120,20 @@ export default function DashboardClient({ userEmail, userId }: DashboardClientPr
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
+  // Real-time subscription: refetch whenever any transaction row changes
+  useEffect(() => {
+    const supabase = createClient();
+    const channel = supabase
+      .channel('transactions-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'transactions' },
+        () => { fetchData(); }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [fetchData]);
+
   // Apply theme from profile to <html> and sync theme-color meta tag
   useEffect(() => {
     const isPink = currentProfile?.theme === 'pink';
