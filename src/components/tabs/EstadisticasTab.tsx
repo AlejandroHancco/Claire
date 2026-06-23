@@ -7,6 +7,7 @@ import {
   LineChart, Line,
 } from 'recharts';
 import { Transaction } from '@/lib/types';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { formatCurrency, getMonthKey, getMonthLabel } from '@/lib/utils';
 
 interface EstadisticasTabProps {
@@ -14,13 +15,6 @@ interface EstadisticasTabProps {
 }
 
 type DateRange = '1M' | '3M' | '6M' | 'Todo';
-
-const RANGES: { key: DateRange; label: string }[] = [
-  { key: '1M', label: '1 mes' },
-  { key: '3M', label: '3 meses' },
-  { key: '6M', label: '6 meses' },
-  { key: 'Todo', label: 'Todo' },
-];
 
 const COLORS = ['#A78BFA', '#34D399', '#F87171', '#60A5FA', '#FBBF24', '#F472B6', '#4ADE80', '#C084FC'];
 
@@ -59,56 +53,66 @@ function getMonthsForRange(range: DateRange, transactions: Transaction[]): strin
 }
 
 export default function EstadisticasTab({ transactions }: EstadisticasTabProps) {
+  const { t, tCat } = useLanguage();
   const [range, setRange] = useState<DateRange>('6M');
+
+  const RANGES: { key: DateRange; label: string }[] = [
+    { key: '1M', label: t('range_1m') },
+    { key: '3M', label: t('range_3m') },
+    { key: '6M', label: t('range_6m') },
+    { key: 'Todo', label: t('range_all') },
+  ];
 
   const filtered = useMemo(() => {
     const cutoff = getDateCutoff(range);
     if (!cutoff) return transactions;
-    return transactions.filter(t => t.date >= cutoff);
+    return transactions.filter(tx => tx.date >= cutoff);
   }, [transactions, range]);
 
   const months = useMemo(() => getMonthsForRange(range, filtered), [range, filtered]);
 
   const monthlyData = useMemo(() =>
     months.map(monthKey => {
-      const monthTx = filtered.filter(t => getMonthKey(t.date) === monthKey);
+      const monthTx = filtered.filter(tx => getMonthKey(tx.date) === monthKey);
       return {
         name: getMonthLabel(monthKey),
-        Ingresos: monthTx.filter(t => t.type === 'Ingreso').reduce((s, t) => s + Number(t.amount), 0),
-        Egresos: monthTx.filter(t => t.type === 'Egreso').reduce((s, t) => s + Number(t.amount), 0),
+        [t('chart_ingresos')]: monthTx.filter(tx => tx.type === 'Ingreso').reduce((s, tx) => s + Number(tx.amount), 0),
+        [t('chart_egresos')]: monthTx.filter(tx => tx.type === 'Egreso').reduce((s, tx) => s + Number(tx.amount), 0),
       };
-    }), [filtered, months]);
+    }), [filtered, months, t]);
 
   const categoryData = useMemo(() => {
     const map: Record<string, number> = {};
-    filtered.filter(t => t.type === 'Egreso').forEach(t => {
-      map[t.category] = (map[t.category] ?? 0) + Number(t.amount);
+    filtered.filter(tx => tx.type === 'Egreso').forEach(tx => {
+      const label = tCat(tx.category);
+      map[label] = (map[label] ?? 0) + Number(tx.amount);
     });
     return Object.entries(map)
       .map(([name, value]) => ({ name, value }))
       .sort((a, b) => b.value - a.value)
       .slice(0, 8);
-  }, [filtered]);
+  }, [filtered, tCat]);
 
   const trendData = useMemo(() =>
     months.map(monthKey => {
-      const monthTx = filtered.filter(t => getMonthKey(t.date) === monthKey);
-      const ing = monthTx.filter(t => t.type === 'Ingreso').reduce((s, t) => s + Number(t.amount), 0);
-      const egr = monthTx.filter(t => t.type === 'Egreso').reduce((s, t) => s + Number(t.amount), 0);
-      return { name: getMonthLabel(monthKey), Balance: ing - egr };
-    }), [filtered, months]);
+      const monthTx = filtered.filter(tx => getMonthKey(tx.date) === monthKey);
+      const ing = monthTx.filter(tx => tx.type === 'Ingreso').reduce((s, tx) => s + Number(tx.amount), 0);
+      const egr = monthTx.filter(tx => tx.type === 'Egreso').reduce((s, tx) => s + Number(tx.amount), 0);
+      return { name: getMonthLabel(monthKey), [t('chart_balance')]: ing - egr };
+    }), [filtered, months, t]);
+
+  const ingLabel = t('chart_ingresos');
+  const egrLabel = t('chart_egresos');
+  const balLabel = t('chart_balance');
 
   return (
     <div className="pb-6">
-      {/* Title */}
       <div className="px-4 pt-4 pb-3">
-        <h2 className="text-[17px] font-semibold" style={{ color: '#F5F5FF' }}>Estadísticas</h2>
-        <p className="text-[13px] mt-0.5" style={{ color: 'rgba(245,245,255,0.40)' }}>
-          Análisis de tus finanzas
-        </p>
+        <h2 className="text-[17px] font-semibold" style={{ color: '#F5F5FF' }}>{t('stats_titulo')}</h2>
+        <p className="text-[13px] mt-0.5" style={{ color: 'rgba(245,245,255,0.40)' }}>{t('stats_subtitulo')}</p>
       </div>
 
-      {/* Date range filter chips */}
+      {/* Date range chips */}
       <div className="px-4 flex gap-2 mb-5">
         {RANGES.map(r => {
           const active = range === r.key;
@@ -134,7 +138,7 @@ export default function EstadisticasTab({ transactions }: EstadisticasTabProps) 
         <div className="px-4 py-16 text-center">
           <p className="text-[32px] mb-3">📊</p>
           <p className="text-[15px] font-medium" style={{ color: 'rgba(245,245,255,0.45)' }}>
-            Sin datos para este período
+            {t('stats_sin_datos')}
           </p>
         </div>
       )}
@@ -142,14 +146,10 @@ export default function EstadisticasTab({ transactions }: EstadisticasTabProps) 
       {filtered.length > 0 && (
         <div className="space-y-6 px-4">
           {/* Monthly bar chart */}
-          <div
-            className="rounded-2xl p-4"
-            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
-          >
-            <p className="text-[13px] font-semibold mb-1" style={{ color: '#F5F5FF' }}>Ingresos vs Egresos</p>
-            <p className="text-[12px] mb-4" style={{ color: 'rgba(245,245,255,0.40)' }}>
-              Por mes
-            </p>
+          <div className="rounded-2xl p-4"
+            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <p className="text-[13px] font-semibold mb-1" style={{ color: '#F5F5FF' }}>{t('stats_ing_vs_egr')}</p>
+            <p className="text-[12px] mb-4" style={{ color: 'rgba(245,245,255,0.40)' }}>{t('stats_por_mes')}</p>
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={monthlyData} barCategoryGap="30%" barGap={3}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
@@ -157,43 +157,29 @@ export default function EstadisticasTab({ transactions }: EstadisticasTabProps) 
                 <YAxis tick={axisStyle} axisLine={false} tickLine={false}
                   tickFormatter={v => `S/${(v / 1000).toFixed(0)}k`} width={44} />
                 <Tooltip contentStyle={tooltipStyle} formatter={v => formatCurrency(Number(v ?? 0))} />
-                <Bar dataKey="Ingresos" fill="#34D399" radius={[5, 5, 0, 0]} />
-                <Bar dataKey="Egresos" fill="#F87171" radius={[5, 5, 0, 0]} />
+                <Bar dataKey={ingLabel} fill="#34D399" radius={[5, 5, 0, 0]} />
+                <Bar dataKey={egrLabel} fill="#F87171" radius={[5, 5, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
 
           {/* Category pie chart */}
-          <div
-            className="rounded-2xl p-4"
-            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
-          >
-            <p className="text-[13px] font-semibold mb-1" style={{ color: '#F5F5FF' }}>Egresos por categoría</p>
+          <div className="rounded-2xl p-4"
+            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <p className="text-[13px] font-semibold mb-1" style={{ color: '#F5F5FF' }}>{t('stats_por_categoria')}</p>
             {categoryData.length === 0 ? (
               <p className="text-center text-[14px] py-8" style={{ color: 'rgba(245,245,255,0.30)' }}>
-                Sin egresos registrados
+                {t('stats_sin_egresos')}
               </p>
             ) : (
               <>
-                <p className="text-[12px] mb-4" style={{ color: 'rgba(245,245,255,0.40)' }}>
-                  Distribución
-                </p>
+                <p className="text-[12px] mb-4" style={{ color: 'rgba(245,245,255,0.40)' }}>{t('stats_distribucion')}</p>
                 <ResponsiveContainer width="100%" height={240}>
                   <PieChart>
-                    <Pie
-                      data={categoryData}
-                      cx="50%"
-                      cy="42%"
-                      innerRadius={55}
-                      outerRadius={88}
-                      paddingAngle={3}
-                      dataKey="value"
-                      label={({ percent }) => `${((percent ?? 0) * 100).toFixed(0)}%`}
-                      labelLine={false}
-                    >
-                      {categoryData.map((_, i) => (
-                        <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                      ))}
+                    <Pie data={categoryData} cx="50%" cy="42%" innerRadius={55} outerRadius={88}
+                      paddingAngle={3} dataKey="value"
+                      label={({ percent }) => `${((percent ?? 0) * 100).toFixed(0)}%`} labelLine={false}>
+                      {categoryData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                     </Pie>
                     <Legend formatter={v => <span style={{ color: 'rgba(245,245,255,0.60)', fontSize: 11 }}>{v}</span>} />
                     <Tooltip contentStyle={tooltipStyle} formatter={v => formatCurrency(Number(v ?? 0))} />
@@ -204,14 +190,10 @@ export default function EstadisticasTab({ transactions }: EstadisticasTabProps) 
           </div>
 
           {/* Balance trend */}
-          <div
-            className="rounded-2xl p-4"
-            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
-          >
-            <p className="text-[13px] font-semibold mb-1" style={{ color: '#F5F5FF' }}>Tendencia de balance</p>
-            <p className="text-[12px] mb-4" style={{ color: 'rgba(245,245,255,0.40)' }}>
-              Balance neto mensual
-            </p>
+          <div className="rounded-2xl p-4"
+            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <p className="text-[13px] font-semibold mb-1" style={{ color: '#F5F5FF' }}>{t('stats_tendencia')}</p>
+            <p className="text-[12px] mb-4" style={{ color: 'rgba(245,245,255,0.40)' }}>{t('stats_balance_mensual')}</p>
             <ResponsiveContainer width="100%" height={200}>
               <LineChart data={trendData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
@@ -219,14 +201,9 @@ export default function EstadisticasTab({ transactions }: EstadisticasTabProps) 
                 <YAxis tick={axisStyle} axisLine={false} tickLine={false}
                   tickFormatter={v => `S/${(v / 1000).toFixed(0)}k`} width={44} />
                 <Tooltip contentStyle={tooltipStyle} formatter={v => formatCurrency(Number(v ?? 0))} />
-                <Line
-                  type="monotone"
-                  dataKey="Balance"
-                  stroke="#A78BFA"
-                  strokeWidth={2.5}
+                <Line type="monotone" dataKey={balLabel} stroke="#A78BFA" strokeWidth={2.5}
                   dot={{ fill: '#A78BFA', r: 4, strokeWidth: 0 }}
-                  activeDot={{ r: 6, fill: '#A78BFA' }}
-                />
+                  activeDot={{ r: 6, fill: '#A78BFA' }} />
               </LineChart>
             </ResponsiveContainer>
           </div>

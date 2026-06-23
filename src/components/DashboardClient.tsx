@@ -3,9 +3,9 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Transaction, TransactionFilters, Profile, TransactionType } from '@/lib/types';
+import { useLanguage } from '@/contexts/LanguageContext';
 import FiltersBar from '@/components/FiltersBar';
 import TransactionModal from '@/components/TransactionModal';
-import FAB from '@/components/FAB';
 import BottomNav, { TabKey } from '@/components/BottomNav';
 import InicioTab from '@/components/tabs/InicioTab';
 import PartnerTab from '@/components/tabs/PartnerTab';
@@ -26,14 +26,9 @@ const defaultFilters: TransactionFilters = {
   responsible: 'All',
 };
 
-const TAB_TITLES: Record<TabKey, string> = {
-  inicio: 'Inicio',
-  partner: 'Pareja',
-  estadisticas: 'Estadísticas',
-  perfil: 'Perfil',
-};
-
 export default function DashboardClient({ userEmail, userId }: DashboardClientProps) {
+  const { t } = useLanguage();
+
   // ── Data state ─────────────────────────────────────────────────────────────
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [profiles, setProfiles] = useState<Profile[]>([]);
@@ -64,9 +59,9 @@ export default function DashboardClient({ userEmail, userId }: DashboardClientPr
   const currentMonthData = useMemo(() => {
     const now = new Date();
     const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-    const monthTx = transactions.filter(t => t.date.startsWith(monthKey));
-    const ingresos = monthTx.filter(t => t.type === 'Ingreso').reduce((s, t) => s + Number(t.amount), 0);
-    const egresos = monthTx.filter(t => t.type === 'Egreso').reduce((s, t) => s + Number(t.amount), 0);
+    const monthTx = transactions.filter(tx => tx.date.startsWith(monthKey));
+    const ingresos = monthTx.filter(tx => tx.type === 'Ingreso').reduce((s, tx) => s + Number(tx.amount), 0);
+    const egresos = monthTx.filter(tx => tx.type === 'Egreso').reduce((s, tx) => s + Number(tx.amount), 0);
     return { ingresos, egresos, balance: ingresos - egresos };
   }, [transactions]);
 
@@ -81,10 +76,10 @@ export default function DashboardClient({ userEmail, userId }: DashboardClientPr
 
     const [txResult, profilesResult] = await Promise.all([
       supabase.from('transactions').select('*').order('date', { ascending: false }),
-      supabase.from('profiles').select('id, display_name, avatar_color'),
+      supabase.from('profiles').select('id, display_name, avatar_color, avatar_url'),
     ]);
 
-    if (txResult.error) toast.error('Error al cargar las transacciones');
+    if (txResult.error) toast.error(t('error_cargar_tx'));
 
     const profileArr: Profile[] = profilesResult.data ?? [];
     setProfiles(profileArr);
@@ -98,6 +93,7 @@ export default function DashboardClient({ userEmail, userId }: DashboardClientPr
 
     setTransactions(txWithProfiles);
     setLoading(false);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => { fetchData(); }, [fetchData]);
@@ -119,11 +115,12 @@ export default function DashboardClient({ userEmail, userId }: DashboardClientPr
     const supabase = createClient();
     const { error } = await supabase.from('transactions').delete().eq('id', id);
     if (error) {
-      toast.error('Error al eliminar la transacción');
+      toast.error(t('error_eliminar'));
     } else {
-      toast.success('Transacción eliminada');
-      setTransactions(prev => prev.filter(t => t.id !== id));
+      toast.success(t('exito_eliminado'));
+      setTransactions(prev => prev.filter(tx => tx.id !== id));
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSuccess = useCallback(() => {
@@ -143,6 +140,11 @@ export default function DashboardClient({ userEmail, userId }: DashboardClientPr
     });
   }, []);
 
+  const handleAdd = useCallback(() => {
+    setTransactionType('Ingreso');
+    setModalOpen(true);
+  }, []);
+
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <>
@@ -151,25 +153,7 @@ export default function DashboardClient({ userEmail, userId }: DashboardClientPr
 
       {/* 390px centered column */}
       <div className="max-w-[390px] mx-auto min-h-dvh relative flex flex-col">
-
-        {/* Minimal top bar */}
-        <header
-          className="sticky top-0 z-30 flex items-center px-5"
-          style={{
-            height: '52px',
-            background: 'var(--header-bg)',
-            backdropFilter: 'blur(20px) saturate(180%)',
-            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-            borderBottom: '1px solid var(--glass-bd)',
-            flexShrink: 0,
-          }}
-        >
-          <span className="text-[17px] font-semibold" style={{ color: '#F5F5FF' }}>
-            {TAB_TITLES[activeTab]}
-          </span>
-        </header>
-
-        {/* Scrollable tab content */}
+        {/* Scrollable tab content — no top header */}
         <main
           className="flex-1 overflow-y-auto"
           style={{ paddingBottom: 'calc(56px + env(safe-area-inset-bottom) + 16px)' }}
@@ -210,13 +194,11 @@ export default function DashboardClient({ userEmail, userId }: DashboardClientPr
         </main>
       </div>
 
-      {/* Bottom navigation */}
-      <BottomNav activeTab={activeTab} onChange={setActiveTab} />
-
-      {/* FAB — works from any tab */}
-      <FAB
-        onIngreso={() => { setTransactionType('Ingreso'); setModalOpen(true); }}
-        onEgreso={() => { setTransactionType('Egreso'); setModalOpen(true); }}
+      {/* Bottom navigation with embedded FAB */}
+      <BottomNav
+        activeTab={activeTab}
+        onChange={setActiveTab}
+        onAdd={handleAdd}
       />
 
       {/* Transaction form sheet */}

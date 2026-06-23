@@ -10,6 +10,7 @@ export interface Profile {
   id: string;
   display_name: string;
   avatar_color: string;
+  avatar_url?: string | null;
 }
 
 export interface Transaction {
@@ -22,7 +23,7 @@ export interface Transaction {
   description?: string | null;
   responsible: string;
   created_at: string;
-  profile?: Pick<Profile, 'display_name' | 'avatar_color'> | null;
+  profile?: Pick<Profile, 'display_name' | 'avatar_color' | 'avatar_url'> | null;
 }
 
 export interface TransactionFilters {

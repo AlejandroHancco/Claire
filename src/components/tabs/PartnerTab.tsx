@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import { Transaction, Profile } from '@/lib/types';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { formatCurrency } from '@/lib/utils';
 
 interface PartnerTabProps {
@@ -31,7 +32,12 @@ function computeStats(profile: Profile, transactions: Transaction[]): ProfileSta
   return { count: userTx.length, ingreso, egreso, balance: ingreso - egreso };
 }
 
-function ProfileCard({ profile, stats, isMe }: { profile: Profile; stats: ProfileStats; isMe: boolean }) {
+function ProfileCard({ profile, stats, isMe, labels }: {
+  profile: Profile;
+  stats: ProfileStats;
+  isMe: boolean;
+  labels: { yo: string; movimientos: string; ingresos: string; egresos: string; balance: string };
+}) {
   const initials = getInitials(profile.display_name);
   const balancePositive = stats.balance >= 0;
 
@@ -46,16 +52,25 @@ function ProfileCard({ profile, stats, isMe }: { profile: Profile; stats: Profil
       {/* Avatar + name */}
       <div className="flex flex-col items-center gap-2 pb-2"
         style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-        <div
-          className="w-16 h-16 rounded-full flex items-center justify-center text-xl font-semibold"
-          style={{
-            background: `${profile.avatar_color}22`,
-            border: `2px solid ${profile.avatar_color}55`,
-            color: profile.avatar_color,
-          }}
-        >
-          {initials}
-        </div>
+        {profile.avatar_url ? (
+          <img
+            src={profile.avatar_url}
+            alt={profile.display_name}
+            className="w-16 h-16 rounded-full object-cover"
+            style={{ border: `2px solid ${profile.avatar_color}55` }}
+          />
+        ) : (
+          <div
+            className="w-16 h-16 rounded-full flex items-center justify-center text-xl font-semibold"
+            style={{
+              background: `${profile.avatar_color}22`,
+              border: `2px solid ${profile.avatar_color}55`,
+              color: profile.avatar_color,
+            }}
+          >
+            {initials}
+          </div>
+        )}
         <div className="text-center">
           <p className="text-[14px] font-semibold" style={{ color: '#F5F5FF' }}>
             {profile.display_name}
@@ -63,7 +78,7 @@ function ProfileCard({ profile, stats, isMe }: { profile: Profile; stats: Profil
           {isMe && (
             <span className="text-[10px] px-2 py-0.5 rounded-full"
               style={{ background: 'rgba(167,139,250,0.15)', color: '#A78BFA' }}>
-              Yo
+              {labels.yo}
             </span>
           )}
         </div>
@@ -72,30 +87,22 @@ function ProfileCard({ profile, stats, isMe }: { profile: Profile; stats: Profil
       {/* Stats */}
       <div className="space-y-2">
         <div className="flex justify-between items-center">
-          <span className="text-[12px]" style={{ color: 'rgba(245,245,255,0.40)' }}>Movimientos</span>
+          <span className="text-[12px]" style={{ color: 'rgba(245,245,255,0.40)' }}>{labels.movimientos}</span>
           <span className="text-[13px] font-semibold" style={{ color: '#F5F5FF' }}>{stats.count}</span>
         </div>
         <div className="flex justify-between items-center">
-          <span className="text-[12px]" style={{ color: 'rgba(245,245,255,0.40)' }}>Ingresos</span>
-          <span className="text-[13px] font-semibold" style={{ color: '#34D399' }}>
-            {formatCurrency(stats.ingreso)}
-          </span>
+          <span className="text-[12px]" style={{ color: 'rgba(245,245,255,0.40)' }}>{labels.ingresos}</span>
+          <span className="text-[13px] font-semibold" style={{ color: '#34D399' }}>{formatCurrency(stats.ingreso)}</span>
         </div>
         <div className="flex justify-between items-center">
-          <span className="text-[12px]" style={{ color: 'rgba(245,245,255,0.40)' }}>Egresos</span>
-          <span className="text-[13px] font-semibold" style={{ color: '#F87171' }}>
-            {formatCurrency(stats.egreso)}
-          </span>
+          <span className="text-[12px]" style={{ color: 'rgba(245,245,255,0.40)' }}>{labels.egresos}</span>
+          <span className="text-[13px] font-semibold" style={{ color: '#F87171' }}>{formatCurrency(stats.egreso)}</span>
         </div>
-        <div
-          className="flex justify-between items-center pt-2 mt-1"
-          style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}
-        >
-          <span className="text-[12px] font-medium" style={{ color: 'rgba(245,245,255,0.55)' }}>Balance</span>
-          <span
-            className="text-[14px] font-bold tabular-nums"
-            style={{ color: balancePositive ? '#F5F5FF' : '#F87171' }}
-          >
+        <div className="flex justify-between items-center pt-2 mt-1"
+          style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+          <span className="text-[12px] font-medium" style={{ color: 'rgba(245,245,255,0.55)' }}>{labels.balance}</span>
+          <span className="text-[14px] font-bold tabular-nums"
+            style={{ color: balancePositive ? '#F5F5FF' : '#F87171' }}>
             {balancePositive ? '' : '−'}{formatCurrency(Math.abs(stats.balance))}
           </span>
         </div>
@@ -104,59 +111,57 @@ function ProfileCard({ profile, stats, isMe }: { profile: Profile; stats: Profil
   );
 }
 
-function EmptyPartnerCard() {
+function EmptyCard({ esperando, sinUsuario }: { esperando: string; sinUsuario: string }) {
   return (
     <div
       className="rounded-2xl p-4 flex flex-col items-center justify-center gap-3 min-h-[200px]"
-      style={{
-        background: 'rgba(255,255,255,0.03)',
-        border: '1px dashed rgba(255,255,255,0.12)',
-      }}
+      style={{ background: 'rgba(255,255,255,0.03)', border: '1px dashed rgba(255,255,255,0.12)' }}
     >
       <span className="text-3xl">💕</span>
       <div className="text-center">
-        <p className="text-[13px] font-medium" style={{ color: 'rgba(245,245,255,0.45)' }}>
-          Esperando a tu pareja
-        </p>
-        <p className="text-[12px] mt-1" style={{ color: 'rgba(245,245,255,0.25)' }}>
-          Aún no hay un segundo usuario
-        </p>
+        <p className="text-[13px] font-medium" style={{ color: 'rgba(245,245,255,0.45)' }}>{esperando}</p>
+        <p className="text-[12px] mt-1" style={{ color: 'rgba(245,245,255,0.25)' }}>{sinUsuario}</p>
       </div>
     </div>
   );
 }
 
 export default function PartnerTab({ profiles, transactions, userId }: PartnerTabProps) {
+  const { t } = useLanguage();
+
   const myProfile = useMemo(() => profiles.find(p => p.id === userId) ?? null, [profiles, userId]);
   const partnerProfile = useMemo(() => profiles.find(p => p.id !== userId) ?? null, [profiles, userId]);
-
   const myStats = useMemo(() => myProfile ? computeStats(myProfile, transactions) : null, [myProfile, transactions]);
   const partnerStats = useMemo(() => partnerProfile ? computeStats(partnerProfile, transactions) : null, [partnerProfile, transactions]);
 
-  const totalIngreso = transactions.filter(t => t.type === 'Ingreso').reduce((s, t) => s + Number(t.amount), 0);
-  const totalEgreso = transactions.filter(t => t.type === 'Egreso').reduce((s, t) => s + Number(t.amount), 0);
+  const totalIngreso = transactions.filter(tx => tx.type === 'Ingreso').reduce((s, tx) => s + Number(tx.amount), 0);
+  const totalEgreso = transactions.filter(tx => tx.type === 'Egreso').reduce((s, tx) => s + Number(tx.amount), 0);
+
+  const cardLabels = {
+    yo: t('partner_yo'),
+    movimientos: t('partner_movimientos'),
+    ingresos: t('partner_ingresos'),
+    egresos: t('partner_egresos'),
+    balance: t('partner_balance'),
+  };
 
   return (
     <div className="px-4 pb-6 pt-4 space-y-4">
-      {/* Title */}
       <div>
-        <h2 className="text-[17px] font-semibold" style={{ color: '#F5F5FF' }}>Pareja</h2>
-        <p className="text-[13px] mt-0.5" style={{ color: 'rgba(245,245,255,0.40)' }}>
-          Resumen individual de cada usuario
-        </p>
+        <h2 className="text-[17px] font-semibold" style={{ color: '#F5F5FF' }}>{t('partner_titulo')}</h2>
+        <p className="text-[13px] mt-0.5" style={{ color: 'rgba(245,245,255,0.40)' }}>{t('partner_subtitulo')}</p>
       </div>
 
-      {/* Side-by-side profile cards */}
       <div className="grid grid-cols-2 gap-3">
         {myProfile && myStats ? (
-          <ProfileCard profile={myProfile} stats={myStats} isMe={true} />
+          <ProfileCard profile={myProfile} stats={myStats} isMe={true} labels={cardLabels} />
         ) : (
-          <EmptyPartnerCard />
+          <EmptyCard esperando={t('partner_esperando')} sinUsuario={t('partner_sin_usuario')} />
         )}
         {partnerProfile && partnerStats ? (
-          <ProfileCard profile={partnerProfile} stats={partnerStats} isMe={false} />
+          <ProfileCard profile={partnerProfile} stats={partnerStats} isMe={false} labels={cardLabels} />
         ) : (
-          <EmptyPartnerCard />
+          <EmptyCard esperando={t('partner_esperando')} sinUsuario={t('partner_sin_usuario')} />
         )}
       </div>
 
@@ -166,21 +171,17 @@ export default function PartnerTab({ profiles, transactions, userId }: PartnerTa
         style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)' }}
       >
         <p className="text-[11px] font-medium uppercase tracking-widest"
-          style={{ color: 'rgba(245,245,255,0.35)' }}>Totales combinados</p>
+          style={{ color: 'rgba(245,245,255,0.35)' }}>{t('partner_combinados')}</p>
         <div className="flex gap-3">
           <div className="flex-1 text-center py-2 rounded-xl"
             style={{ background: 'rgba(52,211,153,0.08)', border: '1px solid rgba(52,211,153,0.15)' }}>
-            <p className="text-[11px]" style={{ color: '#34D399' }}>↑ Ingresos</p>
-            <p className="text-[14px] font-bold mt-0.5" style={{ color: '#34D399' }}>
-              {formatCurrency(totalIngreso)}
-            </p>
+            <p className="text-[11px]" style={{ color: '#34D399' }}>↑ {t('partner_ingresos')}</p>
+            <p className="text-[14px] font-bold mt-0.5" style={{ color: '#34D399' }}>{formatCurrency(totalIngreso)}</p>
           </div>
           <div className="flex-1 text-center py-2 rounded-xl"
             style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.15)' }}>
-            <p className="text-[11px]" style={{ color: '#F87171' }}>↓ Egresos</p>
-            <p className="text-[14px] font-bold mt-0.5" style={{ color: '#F87171' }}>
-              {formatCurrency(totalEgreso)}
-            </p>
+            <p className="text-[11px]" style={{ color: '#F87171' }}>↓ {t('partner_egresos')}</p>
+            <p className="text-[14px] font-bold mt-0.5" style={{ color: '#F87171' }}>{formatCurrency(totalEgreso)}</p>
           </div>
         </div>
       </div>

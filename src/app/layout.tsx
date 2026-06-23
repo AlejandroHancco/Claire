@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { Plus_Jakarta_Sans, Inter } from 'next/font/google';
-import { cookies } from 'next/headers';
-import ToastProvider from '@/components/ToastProvider';
+import ClientProviders from '@/components/ClientProviders';
 import './globals.css';
 
 const plusJakartaSans = Plus_Jakarta_Sans({
@@ -36,18 +35,14 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const cookieStore = cookies();
-  const theme = cookieStore.get('claire-theme')?.value === 'pink' ? 'pink' : 'dark';
-
   return (
     <html
       lang="es"
-      className={`${theme} ${plusJakartaSans.variable} ${inter.variable}`}
+      className={`dark ${plusJakartaSans.variable} ${inter.variable}`}
       suppressHydrationWarning
     >
       <body className="antialiased">
-        {children}
-        <ToastProvider />
+        <ClientProviders>{children}</ClientProviders>
       </body>
     </html>
   );

@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { Transaction, Profile } from '@/lib/types';
+import { useLanguage } from '@/contexts/LanguageContext';
 import HeroCard from '@/components/HeroCard';
 import SavingsGoal from '@/components/SavingsGoal';
 import MonthlyNote from '@/components/MonthlyNote';
@@ -19,7 +20,7 @@ interface InicioTabProps {
   hasActiveFilters: boolean;
 }
 
-const RECENT_COUNT = 5;
+const INITIAL_COUNT = 5;
 const LOAD_MORE_STEP = 15;
 
 export default function InicioTab({
@@ -32,7 +33,8 @@ export default function InicioTab({
   onFilterTap,
   hasActiveFilters,
 }: InicioTabProps) {
-  const [visibleCount, setVisibleCount] = useState(RECENT_COUNT);
+  const { t, tCat } = useLanguage();
+  const [visibleCount, setVisibleCount] = useState(INITIAL_COUNT);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [swipedId, setSwipedId] = useState<string | null>(null);
   const touchStartX = useRef<Record<string, number>>({});
@@ -60,7 +62,7 @@ export default function InicioTab({
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 pt-3">
       {/* Hero balance card */}
       <HeroCard
         ingresos={currentMonthData.ingresos}
@@ -83,9 +85,11 @@ export default function InicioTab({
         {/* Header row */}
         <div className="px-4 py-3 flex items-center justify-between">
           <div>
-            <h2 className="text-[15px] font-semibold" style={{ color: '#F5F5FF' }}>Movimientos</h2>
+            <h2 className="text-[15px] font-semibold" style={{ color: '#F5F5FF' }}>
+              {t('inicio_movimientos')}
+            </h2>
             <p className="text-[12px] mt-0.5" style={{ color: 'rgba(245,245,255,0.35)' }}>
-              {filteredTransactions.length} {filteredTransactions.length === 1 ? 'registro' : 'registros'}
+              {filteredTransactions.length} {filteredTransactions.length === 1 ? t('inicio_registro') : t('inicio_registros')}
             </p>
           </div>
           <button
@@ -100,7 +104,7 @@ export default function InicioTab({
             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
             </svg>
-            {hasActiveFilters ? 'Filtros activos' : 'Filtrar'}
+            {hasActiveFilters ? t('inicio_filtros_activos') : t('inicio_filtrar')}
           </button>
         </div>
 
@@ -119,10 +123,10 @@ export default function InicioTab({
           <div className="px-4 py-12 text-center">
             <p className="text-[32px] mb-3">🪙</p>
             <p className="text-[15px] font-medium" style={{ color: 'rgba(245,245,255,0.45)' }}>
-              {hasActiveFilters ? 'Sin resultados para estos filtros' : 'Sin movimientos aún'}
+              {hasActiveFilters ? t('inicio_sin_resultados') : t('inicio_sin_movimientos')}
             </p>
             <p className="text-[13px] mt-1" style={{ color: 'rgba(245,245,255,0.25)' }}>
-              {hasActiveFilters ? 'Ajusta los filtros para ver más' : 'Toca + para registrar tu primera transacción'}
+              {hasActiveFilters ? t('inicio_ajusta_filtros') : t('inicio_toca_mas')}
             </p>
           </div>
         )}
@@ -144,11 +148,8 @@ export default function InicioTab({
                     className="absolute right-0 top-0 bottom-0 flex items-center justify-center rounded-r-2xl"
                     style={{ width: 80, background: '#EF4444' }}
                   >
-                    <button
-                      onClick={() => handleDelete(tx.id)}
-                      disabled={isDeleting}
-                      className="flex flex-col items-center gap-1"
-                    >
+                    <button onClick={() => handleDelete(tx.id)} disabled={isDeleting}
+                      className="flex flex-col items-center gap-1">
                       {isDeleting ? (
                         <svg className="animate-spin w-5 h-5 text-white" fill="none" viewBox="0 0 24 24">
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -179,22 +180,18 @@ export default function InicioTab({
                       borderRadius: '16px',
                     }}
                   >
-                    <div
-                      className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-[16px]"
-                      style={{ background: dotBg }}
-                    >
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-[16px]"
+                      style={{ background: dotBg }}>
                       {isIngreso ? '↑' : '↓'}
                     </div>
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-baseline justify-between gap-2">
                         <span className="text-[14px] font-medium truncate" style={{ color: '#F5F5FF' }}>
-                          {tx.category}
+                          {tCat(tx.category)}
                         </span>
-                        <span
-                          className="text-[14px] font-semibold tabular-nums flex-shrink-0 tx-amount"
-                          style={{ color: amountColor }}
-                        >
+                        <span className="text-[14px] font-semibold tabular-nums flex-shrink-0 tx-amount"
+                          style={{ color: amountColor }}>
                           {isIngreso ? '+' : '−'}{formatCurrency(Number(tx.amount))}
                         </span>
                       </div>
@@ -215,6 +212,7 @@ export default function InicioTab({
                             <AvatarChip
                               displayName={tx.profile.display_name}
                               avatarColor={tx.profile.avatar_color}
+                              avatarUrl={tx.profile.avatar_url}
                               size="xs"
                               showName={false}
                             />
@@ -231,7 +229,6 @@ export default function InicioTab({
                       onClick={e => { e.stopPropagation(); handleDelete(tx.id); }}
                       className="hidden md:flex flex-shrink-0 w-7 h-7 items-center justify-center rounded-full hover:opacity-100 press"
                       style={{ background: 'rgba(248,113,113,0.10)' }}
-                      title="Eliminar"
                     >
                       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                         style={{ color: '#F87171' }}>
@@ -253,9 +250,9 @@ export default function InicioTab({
                   color: 'rgba(245,245,255,0.45)',
                 }}
               >
-                Cargar {Math.min(LOAD_MORE_STEP, sorted.length - visibleCount)} más
+                {t('inicio_cargar_mas')} {Math.min(LOAD_MORE_STEP, sorted.length - visibleCount)} más
                 <span className="ml-1.5 text-[12px]" style={{ color: 'rgba(245,245,255,0.25)' }}>
-                  ({sorted.length - visibleCount} restantes)
+                  ({sorted.length - visibleCount} {t('inicio_restantes')})
                 </span>
               </button>
             )}

@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import { Transaction, TransactionFilters, INGRESO_CATEGORIES, EGRESO_CATEGORIES } from '@/lib/types';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { formatDate } from '@/lib/utils';
 import BottomSheet from '@/components/BottomSheet';
 
@@ -14,15 +15,17 @@ interface FiltersBarProps {
 }
 
 export default function FiltersBar({ isOpen, onClose, transactions, filters, onChange }: FiltersBarProps) {
+  const { t, tCat } = useLanguage();
+
   const responsibles = useMemo(() => {
-    const set = new Set(transactions.map(t => t.responsible));
+    const set = new Set(transactions.map(tx => tx.responsible));
     return Array.from(set).sort();
   }, [transactions]);
 
   const categoryOptions = useMemo(() => {
     if (filters.type === 'Ingreso') return [...INGRESO_CATEGORIES];
     if (filters.type === 'Egreso') return [...EGRESO_CATEGORIES];
-    const allCats = new Set(transactions.map(t => t.category));
+    const allCats = new Set(transactions.map(tx => tx.category));
     return Array.from(allCats).sort();
   }, [filters.type, transactions]);
 
@@ -40,22 +43,22 @@ export default function FiltersBar({ isOpen, onClose, transactions, filters, onC
     || filters.category !== 'All' || filters.responsible !== 'All');
 
   return (
-    <BottomSheet isOpen={isOpen} onClose={onClose} title="Filtros" snapHeight="90dvh">
+    <BottomSheet isOpen={isOpen} onClose={onClose} title={t('filtros_titulo')} snapHeight="90dvh">
       <div className="px-5 pb-10 space-y-6">
 
         {/* Tipo */}
         <div>
           <p className="text-[11px] font-medium uppercase tracking-widest mb-3"
-            style={{ color: 'rgba(245,245,255,0.35)' }}>Tipo</p>
+            style={{ color: 'rgba(245,245,255,0.35)' }}>{t('filtros_tipo')}</p>
           <div className="flex gap-2">
-            {(['All', 'Ingreso', 'Egreso'] as const).map(t => {
-              const label = t === 'All' ? 'Todos' : t;
-              const active = filters.type === t;
-              const ac = t === 'Ingreso' ? '#34D399' : t === 'Egreso' ? '#F87171' : '#A78BFA';
+            {(['All', 'Ingreso', 'Egreso'] as const).map(tp => {
+              const label = tp === 'All' ? t('filtros_todos') : (tp === 'Ingreso' ? t('tipo_ingreso') : t('tipo_egreso'));
+              const active = filters.type === tp;
+              const ac = tp === 'Ingreso' ? '#34D399' : tp === 'Egreso' ? '#F87171' : '#A78BFA';
               return (
                 <button
-                  key={t}
-                  onClick={() => update({ type: t })}
+                  key={tp}
+                  onClick={() => update({ type: tp })}
                   className="flex-1 py-2.5 rounded-full text-[14px] font-medium press transition-all"
                   style={{
                     background: active ? `${ac}1A` : 'rgba(255,255,255,0.05)',
@@ -73,11 +76,11 @@ export default function FiltersBar({ isOpen, onClose, transactions, filters, onC
         {/* Categoría */}
         <div>
           <p className="text-[11px] font-medium uppercase tracking-widest mb-3"
-            style={{ color: 'rgba(245,245,255,0.35)' }}>Categoría</p>
+            style={{ color: 'rgba(245,245,255,0.35)' }}>{t('filtros_categoria')}</p>
           <div className="flex flex-wrap gap-2">
             {['All', ...categoryOptions].map(cat => {
               const active = filters.category === cat;
-              const label = cat === 'All' ? 'Todas' : cat;
+              const label = cat === 'All' ? t('filtros_todas') : tCat(cat);
               return (
                 <button
                   key={cat}
@@ -100,11 +103,11 @@ export default function FiltersBar({ isOpen, onClose, transactions, filters, onC
         {responsibles.length > 0 && (
           <div>
             <p className="text-[11px] font-medium uppercase tracking-widest mb-3"
-              style={{ color: 'rgba(245,245,255,0.35)' }}>Responsable</p>
+              style={{ color: 'rgba(245,245,255,0.35)' }}>{t('filtros_responsable')}</p>
             <div className="flex flex-wrap gap-2">
               {['All', ...responsibles].map(r => {
                 const active = filters.responsible === r;
-                const label = r === 'All' ? 'Todos' : r;
+                const label = r === 'All' ? t('filtros_todos') : r;
                 return (
                   <button
                     key={r}
@@ -127,11 +130,11 @@ export default function FiltersBar({ isOpen, onClose, transactions, filters, onC
         {/* Período */}
         <div>
           <p className="text-[11px] font-medium uppercase tracking-widest mb-3"
-            style={{ color: 'rgba(245,245,255,0.35)' }}>Período</p>
+            style={{ color: 'rgba(245,245,255,0.35)' }}>{t('filtros_periodo')}</p>
           <div className="grid grid-cols-2 gap-3">
             {[
-              { label: 'Desde', key: 'dateFrom' as const, value: filters.dateFrom },
-              { label: 'Hasta', key: 'dateTo' as const, value: filters.dateTo },
+              { label: t('filtros_desde'), key: 'dateFrom' as const, value: filters.dateFrom },
+              { label: t('filtros_hasta'), key: 'dateTo' as const, value: filters.dateTo },
             ].map(({ label, key, value }) => (
               <div key={key} className="relative">
                 <div
@@ -143,7 +146,7 @@ export default function FiltersBar({ isOpen, onClose, transactions, filters, onC
                 >
                   <span className="text-[11px]" style={{ color: 'rgba(245,245,255,0.35)' }}>{label}</span>
                   <span className="text-[13px] font-medium" style={{ color: value ? '#A78BFA' : 'rgba(245,245,255,0.35)' }}>
-                    {value ? formatDate(value) : 'Seleccionar'}
+                    {value ? formatDate(value) : t('filtros_seleccionar')}
                   </span>
                 </div>
                 <input
@@ -169,7 +172,7 @@ export default function FiltersBar({ isOpen, onClose, transactions, filters, onC
               color: '#F87171',
             }}
           >
-            Limpiar filtros
+            {t('filtros_limpiar')}
           </button>
         )}
 
@@ -178,7 +181,7 @@ export default function FiltersBar({ isOpen, onClose, transactions, filters, onC
           className="w-full h-[52px] rounded-full text-[15px] font-semibold text-white press"
           style={{ background: '#A78BFA' }}
         >
-          Aplicar
+          {t('filtros_aplicar')}
         </button>
       </div>
     </BottomSheet>
