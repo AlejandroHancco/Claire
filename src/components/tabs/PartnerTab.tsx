@@ -75,9 +75,15 @@ function ProfileCard({ profile, stats, isMe, labels }: {
           <p className="text-[14px] font-semibold" style={{ color: '#F5F5FF' }}>
             {profile.display_name}
           </p>
-          {isMe && (
-            <span className="text-[10px] px-2 py-0.5 rounded-full"
+          {/* Always render the badge slot so both card headers are the same height */}
+          {isMe ? (
+            <span className="inline-block text-[10px] px-2 py-0.5 rounded-full"
               style={{ background: 'rgba(167,139,250,0.15)', color: '#A78BFA' }}>
+              {labels.yo}
+            </span>
+          ) : (
+            <span className="inline-block text-[10px] px-2 py-0.5 rounded-full"
+              style={{ visibility: 'hidden' }}>
               {labels.yo}
             </span>
           )}
@@ -152,7 +158,7 @@ export default function PartnerTab({ profiles, transactions, userId }: PartnerTa
         <p className="text-[13px] mt-0.5" style={{ color: 'rgba(245,245,255,0.40)' }}>{t('partner_subtitulo')}</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-3 items-stretch">
         {myProfile && myStats ? (
           <ProfileCard profile={myProfile} stats={myStats} isMe={true} labels={cardLabels} />
         ) : (

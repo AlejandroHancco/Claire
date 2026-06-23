@@ -112,16 +112,26 @@ export default function Header({ userEmail, currentProfile, userId, onProfileUpd
               onClick={() => setDropdownOpen(o => !o)}
               className="flex items-center gap-2 press"
             >
-              <div
-                className="w-8 h-8 rounded-full flex items-center justify-center text-[12px] font-semibold"
-                style={{
-                  background: `${avatarColor}26`,
-                  border: `1.5px solid ${avatarColor}60`,
-                  color: avatarColor,
-                }}
-              >
-                {initials}
-              </div>
+              {currentProfile?.avatar_url ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
+                  src={currentProfile.avatar_url}
+                  alt={displayName}
+                  className="w-8 h-8 rounded-full object-cover"
+                  style={{ border: `1.5px solid ${avatarColor}60` }}
+                />
+              ) : (
+                <div
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-[12px] font-semibold"
+                  style={{
+                    background: `${avatarColor}26`,
+                    border: `1.5px solid ${avatarColor}60`,
+                    color: avatarColor,
+                  }}
+                >
+                  {initials}
+                </div>
+              )}
             </button>
 
             {/* Dropdown */}
