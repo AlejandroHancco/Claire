@@ -79,11 +79,11 @@ export default function BottomNav({ activeTab, onChange, onAdd }: BottomNavProps
         bottom: 0,
         left: 'max(0px, calc(50vw - 195px))',
         width: 'min(390px, 100vw)',
-        height: 'calc(56px + env(safe-area-inset-bottom))',
+        height: 'calc(68px + env(safe-area-inset-bottom))',
         background: 'rgba(8,8,18,0.88)',
         backdropFilter: 'blur(24px) saturate(180%)',
         WebkitBackdropFilter: 'blur(24px) saturate(180%)',
-        paddingBottom: 'env(safe-area-inset-bottom)',
+        paddingBottom: 'calc(env(safe-area-inset-bottom) + 12px)',
         boxShadow: '0 -1px 0 rgba(255,255,255,0.07), 0 -8px 32px rgba(0,0,0,0.30)',
       }}
     >
@@ -94,7 +94,7 @@ export default function BottomNav({ activeTab, onChange, onAdd }: BottomNavProps
           <button
             key={tab.key}
             onClick={() => onChange(tab.key)}
-            className="flex-1 flex flex-col items-center justify-center gap-0.5 press"
+            className="flex-1 flex flex-col items-center justify-center gap-1 press"
             style={{ color: active ? '#A78BFA' : 'rgba(245,245,255,0.32)', transition: 'color 180ms ease' }}
           >
             <tab.icon active={active} />
@@ -113,7 +113,7 @@ export default function BottomNav({ activeTab, onChange, onAdd }: BottomNavProps
             height: 52,
             background: 'linear-gradient(135deg, #A78BFA 0%, #818CF8 100%)',
             boxShadow: '0 4px 20px rgba(167,139,250,0.50)',
-            marginTop: '-22px',
+            marginTop: '-28px',
           }}
           aria-label="Nueva transacción"
         >
@@ -130,7 +130,7 @@ export default function BottomNav({ activeTab, onChange, onAdd }: BottomNavProps
           <button
             key={tab.key}
             onClick={() => onChange(tab.key)}
-            className="flex-1 flex flex-col items-center justify-center gap-0.5 press"
+            className="flex-1 flex flex-col items-center justify-center gap-1 press"
             style={{ color: active ? '#A78BFA' : 'rgba(245,245,255,0.32)', transition: 'color 180ms ease' }}
           >
             <tab.icon active={active} />

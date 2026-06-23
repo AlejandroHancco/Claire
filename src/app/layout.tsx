@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   description: 'Seguimiento privado de ingresos y egresos',
   appleWebApp: {
     capable: true,
-    statusBarStyle: 'black-translucent',
+    statusBarStyle: 'default',
     title: 'Claire',
   },
 };
@@ -31,7 +31,10 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
-  themeColor: '#0A0A0F',
+  themeColor: [
+    { media: '(prefers-color-scheme: dark)', color: '#0D0D1A' },
+    { media: '(prefers-color-scheme: light)', color: '#F9D0E0' },
+  ],
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

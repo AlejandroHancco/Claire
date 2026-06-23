@@ -120,9 +120,15 @@ export default function DashboardClient({ userEmail, userId }: DashboardClientPr
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  // Apply theme from profile to <html>
+  // Apply theme from profile to <html> and sync theme-color meta tag
   useEffect(() => {
-    document.documentElement.classList.toggle('pink', currentProfile?.theme === 'pink');
+    const isPink = currentProfile?.theme === 'pink';
+    document.documentElement.classList.toggle('pink', isPink);
+    const themeColor = isPink ? '#F9D0E0' : '#0D0D1A';
+    // Update all theme-color meta tags (Next.js may emit several for media queries)
+    document.querySelectorAll('meta[name="theme-color"]').forEach(el => {
+      el.setAttribute('content', themeColor);
+    });
   }, [currentProfile?.theme]);
 
   // Auto-seed profile if missing
@@ -179,11 +185,12 @@ export default function DashboardClient({ userEmail, userId }: DashboardClientPr
       <div className="phone-frame-outline" />
 
       {/* 390px centered column */}
-      <div className="max-w-[390px] mx-auto min-h-dvh relative flex flex-col">
+      <div className="max-w-[390px] mx-auto min-h-dvh relative flex flex-col"
+        style={{ paddingTop: 'env(safe-area-inset-top)' }}>
         {/* Scrollable tab content — no top header */}
         <main
           className="flex-1 overflow-y-auto"
-          style={{ paddingBottom: 'calc(56px + env(safe-area-inset-bottom) + 16px)' }}
+          style={{ paddingBottom: 'calc(68px + env(safe-area-inset-bottom) + 12px + 16px)' }}
         >
           {activeTab === 'inicio' && (
             <InicioTab
