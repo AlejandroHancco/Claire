@@ -76,17 +76,39 @@ export default function DashboardClient({ userEmail, userId }: DashboardClientPr
 
     const [txResult, profilesResult] = await Promise.all([
       supabase.from('transactions').select('*').order('date', { ascending: false }),
-      supabase.from('profiles').select('id, display_name, avatar_color, avatar_url'),
+      supabase.from('profiles').select('id, display_name, avatar_color, avatar_url, theme'),
     ]);
 
     if (txResult.error) toast.error(t('error_cargar_tx'));
 
-    const profileArr: Profile[] = profilesResult.data ?? [];
+    // Build profile map from what RLS returns (may only be own profile)
+    const profileMap: Record<string, Profile> = {};
+    for (const p of profilesResult.data ?? []) {
+      profileMap[p.id] = p;
+    }
+
+    // Fallback: reconstruct any missing profiles from transaction data.
+    // If RLS on profiles restricts to own row, partner profiles are still
+    // discoverable via their transactions (responsible = their display_name).
+    const seenUserIds = new Set<string>();
+    const txRows = txResult.data ?? [];
+    for (const tx of txRows) {
+      if (!seenUserIds.has(tx.user_id)) {
+        seenUserIds.add(tx.user_id);
+        if (!profileMap[tx.user_id]) {
+          profileMap[tx.user_id] = {
+            id: tx.user_id,
+            display_name: tx.responsible ?? 'Partner',
+            avatar_color: '#34D399',
+          };
+        }
+      }
+    }
+
+    const profileArr = Object.values(profileMap);
     setProfiles(profileArr);
 
-    const profileMap = Object.fromEntries(profileArr.map(p => [p.id, p]));
-
-    const txWithProfiles: Transaction[] = (txResult.data ?? []).map(tx => ({
+    const txWithProfiles: Transaction[] = txRows.map(tx => ({
       ...tx,
       profile: profileMap[tx.user_id] ?? null,
     }));
@@ -97,6 +119,11 @@ export default function DashboardClient({ userEmail, userId }: DashboardClientPr
   }, []);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  // Apply theme from profile to <html>
+  useEffect(() => {
+    document.documentElement.classList.toggle('pink', currentProfile?.theme === 'pink');
+  }, [currentProfile?.theme]);
 
   // Auto-seed profile if missing
   useEffect(() => {

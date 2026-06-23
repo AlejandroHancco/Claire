@@ -29,6 +29,7 @@ export default function PerfilTab({ userId, userEmail, currentProfile, onProfile
   const [displayName, setDisplayName] = useState('');
   const [avatarColor, setAvatarColor] = useState('#A78BFA');
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [theme, setThemeState] = useState<'dark' | 'pink'>('dark');
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
 
@@ -37,6 +38,7 @@ export default function PerfilTab({ userId, userEmail, currentProfile, onProfile
       setDisplayName(currentProfile.display_name);
       setAvatarColor(currentProfile.avatar_color);
       setAvatarUrl(currentProfile.avatar_url ?? null);
+      setThemeState(currentProfile.theme === 'pink' ? 'pink' : 'dark');
     } else {
       setDisplayName(userEmail.split('@')[0]);
     }
@@ -56,8 +58,28 @@ export default function PerfilTab({ userId, userEmail, currentProfile, onProfile
       toast.error(t('perfil_error'));
     } else {
       toast.success(t('perfil_exito'));
-      onProfileUpdate({ id: userId, display_name: displayName.trim(), avatar_color: avatarColor, avatar_url: avatarUrl });
+      onProfileUpdate({
+        id: userId,
+        display_name: displayName.trim(),
+        avatar_color: avatarColor,
+        avatar_url: avatarUrl,
+        theme,
+      });
     }
+  };
+
+  const handleThemeToggle = async (newTheme: 'dark' | 'pink') => {
+    setThemeState(newTheme);
+    document.documentElement.classList.toggle('pink', newTheme === 'pink');
+    const supabase = createClient();
+    await supabase.from('profiles').update({ theme: newTheme }).eq('id', userId);
+    onProfileUpdate({
+      id: userId,
+      display_name: displayName.trim() || (currentProfile?.display_name ?? ''),
+      avatar_color: avatarColor,
+      avatar_url: avatarUrl,
+      theme: newTheme,
+    });
   };
 
   const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -87,13 +109,12 @@ export default function PerfilTab({ userId, userEmail, currentProfile, onProfile
 
       setAvatarUrl(publicUrl);
       const name = displayName.trim() || (currentProfile?.display_name ?? '');
-      onProfileUpdate({ id: userId, display_name: name, avatar_color: avatarColor, avatar_url: publicUrl });
+      onProfileUpdate({ id: userId, display_name: name, avatar_color: avatarColor, avatar_url: publicUrl, theme });
       toast.success(t('perfil_foto_exito'));
     } catch {
       toast.error(t('perfil_foto_error'));
     } finally {
       setUploading(false);
-      // Reset input so same file can be re-selected
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
@@ -114,8 +135,8 @@ export default function PerfilTab({ userId, userEmail, currentProfile, onProfile
       {/* Avatar with photo upload */}
       <div className="flex flex-col items-center gap-3 py-4">
         <div className="relative">
-          {/* Avatar circle */}
           {avatarUrl ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
             <img
               src={avatarUrl}
               alt={displayName}
@@ -158,7 +179,6 @@ export default function PerfilTab({ userId, userEmail, currentProfile, onProfile
 
         <p className="text-[13px]" style={{ color: 'rgba(245,245,255,0.40)' }}>{userEmail}</p>
 
-        {/* Hidden file input */}
         <input
           ref={fileInputRef}
           type="file"
@@ -234,6 +254,42 @@ export default function PerfilTab({ userId, userEmail, currentProfile, onProfile
 
       {/* Divider */}
       <div className="h-px" style={{ background: 'rgba(255,255,255,0.08)' }} />
+
+      {/* Theme toggle */}
+      <div
+        className="flex items-center justify-between px-4 py-3.5 rounded-2xl"
+        style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)' }}
+      >
+        <div className="flex items-center gap-3">
+          <span className="text-xl">{theme === 'pink' ? '🌸' : '🌙'}</span>
+          <p className="text-[14px] font-medium" style={{ color: '#F5F5FF' }}>{t('perfil_tema')}</p>
+        </div>
+        <div
+          className="flex gap-1 p-1 rounded-full"
+          style={{ background: 'rgba(255,255,255,0.08)' }}
+        >
+          <button
+            onClick={() => handleThemeToggle('dark')}
+            className="px-3 py-1 rounded-full text-[13px] font-semibold press transition-all"
+            style={{
+              background: theme === 'dark' ? '#A78BFA' : 'transparent',
+              color: theme === 'dark' ? '#fff' : 'rgba(245,245,255,0.45)',
+            }}
+          >
+            🌙 {t('tema_oscuro')}
+          </button>
+          <button
+            onClick={() => handleThemeToggle('pink')}
+            className="px-3 py-1 rounded-full text-[13px] font-semibold press transition-all"
+            style={{
+              background: theme === 'pink' ? '#E91E8C' : 'transparent',
+              color: theme === 'pink' ? '#fff' : 'rgba(245,245,255,0.45)',
+            }}
+          >
+            🌸 {t('tema_rosa')}
+          </button>
+        </div>
+      </div>
 
       {/* Language toggle */}
       <div

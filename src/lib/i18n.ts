@@ -78,6 +78,7 @@ const es = {
   perfil_guardar: 'Guardar perfil',
   perfil_guardando: 'Guardando...',
   perfil_idioma: 'Idioma',
+  perfil_tema: 'Tema',
   perfil_cerrar_sesion: 'Cerrar sesión',
   perfil_foto: 'Foto de perfil',
   perfil_cambiar_foto: 'Cambiar foto',
@@ -86,6 +87,8 @@ const es = {
   perfil_sesion_cerrada: 'Sesión cerrada',
   perfil_foto_error: 'Error al subir la foto',
   perfil_foto_exito: 'Foto actualizada',
+  tema_oscuro: 'Oscuro',
+  tema_rosa: 'Rosa',
 
   // Filters
   filtros_titulo: 'Filtros',
@@ -203,6 +206,7 @@ const en: TranslationMap = {
   perfil_guardar: 'Save profile',
   perfil_guardando: 'Saving...',
   perfil_idioma: 'Language',
+  perfil_tema: 'Theme',
   perfil_cerrar_sesion: 'Sign out',
   perfil_foto: 'Profile photo',
   perfil_cambiar_foto: 'Change photo',
@@ -211,6 +215,8 @@ const en: TranslationMap = {
   perfil_sesion_cerrada: 'Signed out',
   perfil_foto_error: 'Error uploading photo',
   perfil_foto_exito: 'Photo updated',
+  tema_oscuro: 'Dark',
+  tema_rosa: 'Pink',
 
   filtros_titulo: 'Filters',
   filtros_tipo: 'Type',

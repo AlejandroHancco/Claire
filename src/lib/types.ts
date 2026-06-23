@@ -11,6 +11,7 @@ export interface Profile {
   display_name: string;
   avatar_color: string;
   avatar_url?: string | null;
+  theme?: 'dark' | 'pink' | null;
 }
 
 export interface Transaction {
