@@ -176,13 +176,11 @@ export default function DashboardClient({ userEmail, userId }: DashboardClientPr
         >
           {activeTab === 'inicio' && (
             <InicioTab
-              transactions={transactions}
               filteredTransactions={filteredTransactions}
               currentMonthData={currentMonthData}
               loading={loading}
               userId={userId}
               profiles={profiles}
-              filters={filters}
               onDelete={handleDelete}
               onFilterTap={() => setFiltersOpen(true)}
               hasActiveFilters={hasActiveFilters}

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { Transaction, TransactionFilters, Profile } from '@/lib/types';
+import { Transaction, Profile } from '@/lib/types';
 import HeroCard from '@/components/HeroCard';
 import SavingsGoal from '@/components/SavingsGoal';
 import MonthlyNote from '@/components/MonthlyNote';
@@ -9,13 +9,11 @@ import AvatarChip from '@/components/AvatarChip';
 import { formatCurrency, formatDate } from '@/lib/utils';
 
 interface InicioTabProps {
-  transactions: Transaction[];
   filteredTransactions: Transaction[];
   currentMonthData: { ingresos: number; egresos: number; balance: number };
   loading: boolean;
   userId: string;
   profiles: Profile[];
-  filters: TransactionFilters;
   onDelete: (id: string) => Promise<void>;
   onFilterTap: () => void;
   hasActiveFilters: boolean;
@@ -25,13 +23,11 @@ const RECENT_COUNT = 5;
 const LOAD_MORE_STEP = 15;
 
 export default function InicioTab({
-  transactions,
   filteredTransactions,
   currentMonthData,
   loading,
   userId,
   profiles,
-  filters,
   onDelete,
   onFilterTap,
   hasActiveFilters,
