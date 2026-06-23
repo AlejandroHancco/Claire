@@ -126,7 +126,7 @@ export default function TransactionsTable({
           const isSwiped = swipedId === tx.id;
           const isDeleting = deleting === tx.id;
           const isIngreso = tx.type === 'Ingreso';
-          const amountColor = isIngreso ? '#34D399' : '#F87171';
+          const amountColor = isIngreso ? 'var(--color-ingreso)' : 'var(--color-egreso)';
           const dotBg = isIngreso ? 'rgba(52,211,153,0.15)' : 'rgba(248,113,113,0.15)';
 
           return (
@@ -186,7 +186,7 @@ export default function TransactionsTable({
                       {tx.category}
                     </span>
                     <span
-                      className="text-[14px] font-semibold tabular-nums flex-shrink-0"
+                      className="text-[14px] font-semibold tabular-nums flex-shrink-0 tx-amount"
                       style={{ color: amountColor }}
                     >
                       {isIngreso ? '+' : '−'}{formatCurrency(Number(tx.amount))}
