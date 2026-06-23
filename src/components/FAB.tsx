@@ -28,7 +28,7 @@ export default function FAB({ onIngreso, onEgreso }: FABProps) {
       <div
         className="fixed z-[49] flex flex-col items-center gap-3"
         style={{
-          bottom: '24px',
+          bottom: '80px',
           right: 'max(24px, calc(50vw - 171px))',
         }}
       >

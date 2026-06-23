@@ -1,7 +1,7 @@
 export type TransactionType = 'Ingreso' | 'Egreso';
 
-export const INGRESO_CATEGORIES = ['Ventas', 'Servicios', 'Alquiler', 'Otro'] as const;
-export const EGRESO_CATEGORIES = ['Proveedor', 'Personal', 'Operativo', 'Otro'] as const;
+export const INGRESO_CATEGORIES = ['Sueldo', 'Depósito', 'Transferencia', 'Negocio', 'Inversión', 'Bono', 'Otro'] as const;
+export const EGRESO_CATEGORIES = ['Alimentación', 'Transporte', 'Alojamiento', 'Salidas', 'Servicios', 'Salud', 'Educación', 'Ropa', 'Comida', 'Otro'] as const;
 
 export type IngresoCategory = typeof INGRESO_CATEGORIES[number];
 export type EgresoCategory = typeof EGRESO_CATEGORIES[number];

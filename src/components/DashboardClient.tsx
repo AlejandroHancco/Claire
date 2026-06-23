@@ -3,17 +3,14 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Transaction, TransactionFilters, Profile, TransactionType } from '@/lib/types';
-import Header from '@/components/Header';
-import HeroCard from '@/components/HeroCard';
-import KPICards from '@/components/KPICards';
 import FiltersBar from '@/components/FiltersBar';
-import ChartsSection from '@/components/ChartsSection';
-import TransactionsTable from '@/components/TransactionsTable';
 import TransactionModal from '@/components/TransactionModal';
-import SavingsGoal from '@/components/SavingsGoal';
-import MonthlyNote from '@/components/MonthlyNote';
-import BottomSheet from '@/components/BottomSheet';
 import FAB from '@/components/FAB';
+import BottomNav, { TabKey } from '@/components/BottomNav';
+import InicioTab from '@/components/tabs/InicioTab';
+import PartnerTab from '@/components/tabs/PartnerTab';
+import EstadisticasTab from '@/components/tabs/EstadisticasTab';
+import PerfilTab from '@/components/tabs/PerfilTab';
 import toast from 'react-hot-toast';
 
 interface DashboardClientProps {
@@ -29,26 +26,56 @@ const defaultFilters: TransactionFilters = {
   responsible: 'All',
 };
 
+const TAB_TITLES: Record<TabKey, string> = {
+  inicio: 'Inicio',
+  partner: 'Pareja',
+  estadisticas: 'Estadísticas',
+  perfil: 'Perfil',
+};
+
 export default function DashboardClient({ userEmail, userId }: DashboardClientProps) {
-  // ── Existing data state (untouched) ────────────────────────────────────────
+  // ── Data state ─────────────────────────────────────────────────────────────
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [filters, setFilters] = useState<TransactionFilters>(defaultFilters);
-
-  // ── New UI state ────────────────────────────────────────────────────────────
-  const [statsOpen, setStatsOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [transactionType, setTransactionType] = useState<TransactionType>('Ingreso');
+  const [activeTab, setActiveTab] = useState<TabKey>('inicio');
 
-  // ── Derived: current profile (untouched) ───────────────────────────────────
+  // ── Derived state ──────────────────────────────────────────────────────────
   const currentProfile = useMemo(
     () => profiles.find(p => p.id === userId) ?? null,
     [profiles, userId]
   );
 
-  // ── Data fetching (untouched) ───────────────────────────────────────────────
+  const filteredTransactions = useMemo(() => {
+    return transactions.filter(t => {
+      if (filters.dateFrom && t.date < filters.dateFrom) return false;
+      if (filters.dateTo && t.date > filters.dateTo) return false;
+      if (filters.type !== 'All' && t.type !== filters.type) return false;
+      if (filters.category !== 'All' && t.category !== filters.category) return false;
+      if (filters.responsible !== 'All' && t.responsible !== filters.responsible) return false;
+      return true;
+    });
+  }, [transactions, filters]);
+
+  const currentMonthData = useMemo(() => {
+    const now = new Date();
+    const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const monthTx = transactions.filter(t => t.date.startsWith(monthKey));
+    const ingresos = monthTx.filter(t => t.type === 'Ingreso').reduce((s, t) => s + Number(t.amount), 0);
+    const egresos = monthTx.filter(t => t.type === 'Egreso').reduce((s, t) => s + Number(t.amount), 0);
+    return { ingresos, egresos, balance: ingresos - egresos };
+  }, [transactions]);
+
+  const hasActiveFilters = useMemo(() =>
+    !!(filters.dateFrom || filters.dateTo || filters.type !== 'All'
+      || filters.category !== 'All' || filters.responsible !== 'All'),
+    [filters]);
+
+  // ── Data fetching ──────────────────────────────────────────────────────────
   const fetchData = useCallback(async () => {
     const supabase = createClient();
 
@@ -75,7 +102,7 @@ export default function DashboardClient({ userEmail, userId }: DashboardClientPr
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  // Auto-seed profile if missing (untouched)
+  // Auto-seed profile if missing
   useEffect(() => {
     if (!loading && profiles.length > 0 && !profiles.find(p => p.id === userId)) {
       const supabase = createClient();
@@ -87,34 +114,7 @@ export default function DashboardClient({ userEmail, userId }: DashboardClientPr
     }
   }, [loading, profiles, userId, userEmail, fetchData]);
 
-  // ── Derived filtered data (untouched) ─────────────────────────────────────
-  const filteredTransactions = useMemo(() => {
-    return transactions.filter(t => {
-      if (filters.dateFrom && t.date < filters.dateFrom) return false;
-      if (filters.dateTo && t.date > filters.dateTo) return false;
-      if (filters.type !== 'All' && t.type !== filters.type) return false;
-      if (filters.category !== 'All' && t.category !== filters.category) return false;
-      if (filters.responsible !== 'All' && t.responsible !== filters.responsible) return false;
-      return true;
-    });
-  }, [transactions, filters]);
-
-  // ── Current month data for hero card ──────────────────────────────────────
-  const currentMonthData = useMemo(() => {
-    const now = new Date();
-    const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-    const monthTx = transactions.filter(t => t.date.startsWith(monthKey));
-    const ingresos = monthTx.filter(t => t.type === 'Ingreso').reduce((s, t) => s + Number(t.amount), 0);
-    const egresos = monthTx.filter(t => t.type === 'Egreso').reduce((s, t) => s + Number(t.amount), 0);
-    return { ingresos, egresos, balance: ingresos - egresos };
-  }, [transactions]);
-
-  const hasActiveFilters = useMemo(() =>
-    !!(filters.dateFrom || filters.dateTo || filters.type !== 'All'
-      || filters.category !== 'All' || filters.responsible !== 'All'),
-    [filters]);
-
-  // ── Handlers (untouched) ───────────────────────────────────────────────────
+  // ── Handlers ───────────────────────────────────────────────────────────────
   const handleDelete = useCallback(async (id: string) => {
     const supabase = createClient();
     const { error } = await supabase.from('transactions').delete().eq('id', id);
@@ -150,51 +150,72 @@ export default function DashboardClient({ userEmail, userId }: DashboardClientPr
       <div className="phone-frame-outline" />
 
       {/* 390px centered column */}
-      <div className="max-w-[390px] mx-auto min-h-dvh relative">
-        {/* Sticky header */}
-        <Header
-          userEmail={userEmail}
-          currentProfile={currentProfile}
-          userId={userId}
-          onNewTransaction={() => { setTransactionType('Ingreso'); setModalOpen(true); }}
-          onProfileUpdate={handleProfileUpdate}
-        />
+      <div className="max-w-[390px] mx-auto min-h-dvh relative flex flex-col">
 
-        {/* Scrollable content */}
-        <main className="pb-28 space-y-3">
-          {/* Hero balance card */}
-          <HeroCard
-            ingresos={currentMonthData.ingresos}
-            egresos={currentMonthData.egresos}
-            balance={currentMonthData.balance}
-            loading={loading}
-          />
+        {/* Minimal top bar */}
+        <header
+          className="sticky top-0 z-30 flex items-center px-5"
+          style={{
+            height: '52px',
+            background: 'var(--header-bg)',
+            backdropFilter: 'blur(20px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+            borderBottom: '1px solid var(--glass-bd)',
+            flexShrink: 0,
+          }}
+        >
+          <span className="text-[17px] font-semibold" style={{ color: '#F5F5FF' }}>
+            {TAB_TITLES[activeTab]}
+          </span>
+        </header>
 
-          {/* KPI chips */}
-          <KPICards transactions={filteredTransactions} />
+        {/* Scrollable tab content */}
+        <main
+          className="flex-1 overflow-y-auto"
+          style={{ paddingBottom: 'calc(56px + env(safe-area-inset-bottom) + 16px)' }}
+        >
+          {activeTab === 'inicio' && (
+            <InicioTab
+              transactions={transactions}
+              filteredTransactions={filteredTransactions}
+              currentMonthData={currentMonthData}
+              loading={loading}
+              userId={userId}
+              profiles={profiles}
+              filters={filters}
+              onDelete={handleDelete}
+              onFilterTap={() => setFiltersOpen(true)}
+              hasActiveFilters={hasActiveFilters}
+            />
+          )}
 
-          {/* Savings goal compact */}
-          <SavingsGoal userId={userId} />
+          {activeTab === 'partner' && (
+            <PartnerTab
+              profiles={profiles}
+              transactions={transactions}
+              userId={userId}
+            />
+          )}
 
-          {/* Monthly notes side-by-side */}
-          <MonthlyNote userId={userId} profiles={profiles} />
+          {activeTab === 'estadisticas' && (
+            <EstadisticasTab transactions={transactions} />
+          )}
 
-          {/* Section divider */}
-          <div className="h-px mx-4" style={{ background: 'rgba(255,255,255,0.06)' }} />
-
-          {/* Transactions list */}
-          <TransactionsTable
-            transactions={filteredTransactions}
-            onDelete={handleDelete}
-            loading={loading}
-            onFilterTap={() => setFiltersOpen(true)}
-            onStatsTap={() => setStatsOpen(true)}
-            hasActiveFilters={hasActiveFilters}
-          />
+          {activeTab === 'perfil' && (
+            <PerfilTab
+              userId={userId}
+              userEmail={userEmail}
+              currentProfile={currentProfile}
+              onProfileUpdate={handleProfileUpdate}
+            />
+          )}
         </main>
       </div>
 
-      {/* FAB */}
+      {/* Bottom navigation */}
+      <BottomNav activeTab={activeTab} onChange={setActiveTab} />
+
+      {/* FAB — works from any tab */}
       <FAB
         onIngreso={() => { setTransactionType('Ingreso'); setModalOpen(true); }}
         onEgreso={() => { setTransactionType('Egreso'); setModalOpen(true); }}
@@ -206,12 +227,8 @@ export default function DashboardClient({ userEmail, userId }: DashboardClientPr
         onClose={() => setModalOpen(false)}
         onSuccess={handleSuccess}
         defaultType={transactionType}
+        displayName={currentProfile?.display_name}
       />
-
-      {/* Stats sheet */}
-      <BottomSheet isOpen={statsOpen} onClose={() => setStatsOpen(false)} title="Estadísticas" snapHeight="90dvh">
-        <ChartsSection transactions={filteredTransactions} />
-      </BottomSheet>
 
       {/* Filters sheet */}
       <FiltersBar

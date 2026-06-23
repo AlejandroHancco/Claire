@@ -12,6 +12,7 @@ interface TransactionModalProps {
   onClose: () => void;
   onSuccess: () => void;
   defaultType?: TransactionType;
+  displayName?: string;
 }
 
 interface FormState {
@@ -20,7 +21,6 @@ interface FormState {
   category: string;
   amount: string;
   description: string;
-  responsible: string;
 }
 
 const initialForm = (type: TransactionType = 'Ingreso'): FormState => ({
@@ -29,10 +29,9 @@ const initialForm = (type: TransactionType = 'Ingreso'): FormState => ({
   category: (type === 'Ingreso' ? INGRESO_CATEGORIES : EGRESO_CATEGORIES)[0],
   amount: '',
   description: '',
-  responsible: '',
 });
 
-export default function TransactionModal({ isOpen, onClose, onSuccess, defaultType }: TransactionModalProps) {
+export default function TransactionModal({ isOpen, onClose, onSuccess, defaultType, displayName }: TransactionModalProps) {
   const [form, setForm] = useState<FormState>(initialForm(defaultType));
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
@@ -61,7 +60,6 @@ export default function TransactionModal({ isOpen, onClose, onSuccess, defaultTy
     const errs: Partial<Record<keyof FormState, string>> = {};
     if (!form.date) errs.date = 'Requerido';
     if (!form.amount || Number(form.amount) <= 0) errs.amount = 'Ingrese un monto válido';
-    if (!form.responsible.trim()) errs.responsible = 'Requerido';
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -75,6 +73,8 @@ export default function TransactionModal({ isOpen, onClose, onSuccess, defaultTy
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
+    const responsible = displayName ?? user?.email?.split('@')[0] ?? 'Usuario';
+
     const { error } = await supabase.from('transactions').insert({
       user_id: user!.id,
       date: form.date,
@@ -82,7 +82,7 @@ export default function TransactionModal({ isOpen, onClose, onSuccess, defaultTy
       category: form.category,
       amount: Number(form.amount),
       description: form.description.trim() || null,
-      responsible: form.responsible.trim(),
+      responsible,
     });
 
     setSubmitting(false);
@@ -179,52 +179,28 @@ export default function TransactionModal({ isOpen, onClose, onSuccess, defaultTy
           </div>
         </div>
 
-        {/* Row: Date + Responsible */}
-        <div className="grid grid-cols-2 gap-4">
-          {/* Date */}
-          <div>
-            <p className="text-[11px] font-medium uppercase tracking-widest mb-2"
-              style={{ color: 'rgba(245,245,255,0.35)' }}>Fecha</p>
-            <div className="relative">
-              <div
-                className="px-3 py-2.5 rounded-xl text-[14px] font-medium"
-                style={{
-                  background: 'rgba(255,255,255,0.05)',
-                  border: `1px solid ${errors.date ? '#F87171' : 'rgba(255,255,255,0.09)'}`,
-                  color: '#F5F5FF',
-                }}
-              >
-                {formatDate(form.date)}
-              </div>
-              <input
-                type="date"
-                value={form.date}
-                onChange={e => update('date', e.target.value)}
-                className="absolute inset-0 opacity-0 cursor-pointer"
-                style={{ colorScheme: 'dark' }}
-              />
-            </div>
-          </div>
-
-          {/* Responsible */}
-          <div>
-            <p className="text-[11px] font-medium uppercase tracking-widest mb-2"
-              style={{ color: 'rgba(245,245,255,0.35)' }}>Responsable</p>
-            <input
-              type="text"
-              value={form.responsible}
-              onChange={e => update('responsible', e.target.value)}
-              placeholder="Nombre"
-              className="w-full px-3 py-2.5 rounded-xl text-[14px] bg-transparent focus:outline-none"
+        {/* Date — full width */}
+        <div>
+          <p className="text-[11px] font-medium uppercase tracking-widest mb-2"
+            style={{ color: 'rgba(245,245,255,0.35)' }}>Fecha</p>
+          <div className="relative">
+            <div
+              className="px-3 py-2.5 rounded-xl text-[14px] font-medium"
               style={{
                 background: 'rgba(255,255,255,0.05)',
-                border: `1px solid ${errors.responsible ? '#F87171' : 'rgba(255,255,255,0.09)'}`,
+                border: `1px solid ${errors.date ? '#F87171' : 'rgba(255,255,255,0.09)'}`,
                 color: '#F5F5FF',
               }}
+            >
+              {formatDate(form.date)}
+            </div>
+            <input
+              type="date"
+              value={form.date}
+              onChange={e => update('date', e.target.value)}
+              className="absolute inset-0 opacity-0 cursor-pointer"
+              style={{ colorScheme: 'dark' }}
             />
-            {errors.responsible && (
-              <p className="text-[11px] mt-1" style={{ color: '#F87171' }}>{errors.responsible}</p>
-            )}
           </div>
         </div>
 
