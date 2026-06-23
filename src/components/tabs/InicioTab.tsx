@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Transaction, Profile } from '@/lib/types';
 import { useLanguage } from '@/contexts/LanguageContext';
 import HeroCard from '@/components/HeroCard';
@@ -22,6 +22,9 @@ interface InicioTabProps {
 
 const INITIAL_COUNT = 5;
 const LOAD_MORE_STEP = 15;
+const SWIPE_WIDTH = 80;
+const SWIPE_THRESHOLD = 40;
+const SPRING = 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)';
 
 export default function InicioTab({
   filteredTransactions,
@@ -36,18 +39,75 @@ export default function InicioTab({
   const { t, tCat } = useLanguage();
   const [visibleCount, setVisibleCount] = useState(INITIAL_COUNT);
   const [deleting, setDeleting] = useState<string | null>(null);
-  const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  const [openId, setOpenId] = useState<string | null>(null);
+
+  // Refs for direct DOM animation (no re-render during drag)
+  const cardEls = useRef<Record<string, HTMLDivElement | null>>({});
+  const drag = useRef<{ id: string; x0: number; dx: number; base: number } | null>(null);
 
   const sorted = [...filteredTransactions].sort((a, b) => b.date.localeCompare(a.date));
   const visible = sorted.slice(0, visibleCount);
   const hasMore = sorted.length > visibleCount;
 
+  function snapCard(id: string, open: boolean) {
+    const el = cardEls.current[id];
+    if (!el) return;
+    el.style.transition = SPRING;
+    el.style.transform = open ? `translateX(-${SWIPE_WIDTH}px)` : 'translateX(0)';
+  }
+
   const handleDelete = async (id: string) => {
     setDeleting(id);
     await onDelete(id);
     setDeleting(null);
-    setConfirmingId(null);
+    setOpenId(null);
   };
+
+  function onTouchStart(id: string, e: React.TouchEvent) {
+    drag.current = { id, x0: e.touches[0].clientX, dx: 0, base: openId === id ? SWIPE_WIDTH : 0 };
+    const el = cardEls.current[id];
+    if (el) el.style.transition = 'none';
+  }
+
+  function onTouchMove(id: string, e: React.TouchEvent) {
+    const d = drag.current;
+    if (!d || d.id !== id) return;
+    d.dx = d.x0 - e.touches[0].clientX;
+    const raw = d.base + d.dx;
+    const clamped = Math.max(0, Math.min(SWIPE_WIDTH, raw));
+    const el = cardEls.current[id];
+    if (el) el.style.transform = `translateX(-${clamped}px)`;
+  }
+
+  function onTouchEnd(id: string) {
+    const d = drag.current;
+    if (!d || d.id !== id) return;
+    drag.current = null;
+
+    // Treat tiny movement as a tap — close whichever card is open
+    if (Math.abs(d.dx) < 5) {
+      if (openId) { snapCard(openId, false); setOpenId(null); }
+      return;
+    }
+
+    const raw = d.base + d.dx;
+    if (raw >= SWIPE_THRESHOLD) {
+      // Snap open; close any other open card first
+      if (openId && openId !== id) snapCard(openId, false);
+      snapCard(id, true);
+      setOpenId(id);
+    } else {
+      // Snap closed
+      snapCard(id, false);
+      if (openId === id) setOpenId(null);
+    }
+  }
+
+  function onTouchCancel(id: string) {
+    drag.current = null;
+    // Restore to whichever state the card was in before the gesture
+    snapCard(id, openId === id);
+  }
 
   return (
     <div className="space-y-3 pt-3">
@@ -123,7 +183,7 @@ export default function InicioTab({
         {!loading && (
           <div className="px-4 space-y-2 pb-4">
             {visible.map(tx => {
-              const isConfirming = confirmingId === tx.id;
+              const isOwn = tx.user_id === userId;
               const isDeleting = deleting === tx.id;
               const isIngreso = tx.type === 'Ingreso';
               const amountColor = isIngreso ? 'var(--color-ingreso)' : 'var(--color-egreso)';
@@ -132,108 +192,101 @@ export default function InicioTab({
               return (
                 <div
                   key={tx.id}
-                  className="flex items-center gap-3 px-3 py-3 rounded-2xl"
-                  style={{
-                    background: isConfirming ? 'rgba(248,113,113,0.06)' : 'rgba(255,255,255,0.05)',
-                    border: `1px solid ${isConfirming ? 'rgba(248,113,113,0.20)' : 'rgba(255,255,255,0.08)'}`,
-                    transition: 'background 200ms, border-color 200ms',
-                  }}
+                  className="relative overflow-hidden rounded-2xl"
+                  style={{ border: '1px solid rgba(255,255,255,0.08)' }}
                 >
-                  {/* Type indicator */}
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-[16px]"
-                    style={{ background: dotBg }}>
-                    {isIngreso ? '↑' : '↓'}
-                  </div>
-
-                  {/* Content */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-baseline justify-between gap-2">
-                      <span className="text-[14px] font-medium truncate" style={{ color: '#F5F5FF' }}>
-                        {tCat(tx.category)}
-                      </span>
-                      <span className="text-[14px] font-semibold tabular-nums flex-shrink-0"
-                        style={{ color: amountColor }}>
-                        {isIngreso ? '+' : '−'}{formatCurrency(Number(tx.amount))}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-[12px]" style={{ color: 'rgba(245,245,255,0.35)' }}>
-                        {formatDate(tx.date)}
-                      </span>
-                      {tx.description && (
-                        <>
-                          <span style={{ color: 'rgba(245,245,255,0.18)' }}>·</span>
-                          <span className="text-[12px] truncate" style={{ color: 'rgba(245,245,255,0.35)' }}>
-                            {tx.description}
-                          </span>
-                        </>
-                      )}
-                      <span className="ml-auto flex-shrink-0">
-                        {tx.profile ? (
-                          <AvatarChip
-                            displayName={tx.profile.display_name}
-                            avatarColor={tx.profile.avatar_color}
-                            avatarUrl={tx.profile.avatar_url}
-                            size="xs"
-                            showName={false}
-                          />
-                        ) : (
-                          <span className="text-[11px]" style={{ color: 'rgba(245,245,255,0.30)' }}>
-                            {tx.responsible}
-                          </span>
-                        )}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Delete controls */}
-                  {isConfirming ? (
-                    /* Confirm / cancel pair */
-                    <div className="flex items-center gap-1 flex-shrink-0">
+                  {/* Red delete zone revealed on swipe — own transactions only */}
+                  {isOwn && (
+                    <div
+                      className="absolute right-0 top-0 bottom-0 flex items-center justify-center"
+                      style={{ width: SWIPE_WIDTH, background: '#EF4444' }}
+                    >
                       <button
                         onClick={() => handleDelete(tx.id)}
                         disabled={isDeleting}
-                        className="w-9 h-9 rounded-full flex items-center justify-center press"
-                        style={{ background: 'rgba(239,68,68,0.18)', color: '#EF4444' }}
-                        aria-label="Confirmar eliminación"
+                        className="flex flex-col items-center gap-1"
+                        aria-label="Eliminar transacción"
                       >
                         {isDeleting ? (
-                          <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                          <svg className="animate-spin w-5 h-5 text-white" fill="none" viewBox="0 0 24 24">
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                           </svg>
                         ) : (
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                          </svg>
+                          <>
+                            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m-7 0H4m4 0V4a1 1 0 011-1h2a1 1 0 011 1v3" />
+                            </svg>
+                            <span className="text-white text-[10px] font-semibold">Eliminar</span>
+                          </>
                         )}
                       </button>
-                      <button
-                        onClick={() => setConfirmingId(null)}
-                        disabled={isDeleting}
-                        className="w-9 h-9 rounded-full flex items-center justify-center press"
-                        style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(245,245,255,0.45)' }}
-                        aria-label="Cancelar"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      </button>
                     </div>
-                  ) : (
-                    /* Trash button — 44×44 touch target */
-                    <button
-                      onClick={() => setConfirmingId(tx.id)}
-                      className="w-11 h-11 flex items-center justify-center flex-shrink-0 rounded-full press"
-                      style={{ color: 'rgba(245,245,255,0.22)' }}
-                      aria-label="Eliminar transacción"
-                    >
-                      <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8}
-                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m-7 0H4m4 0V4a1 1 0 011-1h2a1 1 0 011 1v3" />
-                      </svg>
-                    </button>
                   )}
+
+                  {/* Sliding card — follows finger, snaps open/closed */}
+                  <div
+                    ref={el => { cardEls.current[tx.id] = el; }}
+                    onTouchStart={isOwn ? e => onTouchStart(tx.id, e) : undefined}
+                    onTouchMove={isOwn ? e => onTouchMove(tx.id, e) : undefined}
+                    onTouchEnd={isOwn ? () => onTouchEnd(tx.id) : undefined}
+                    onTouchCancel={isOwn ? () => onTouchCancel(tx.id) : undefined}
+                    className="flex items-center gap-3 px-3 py-3"
+                    style={{
+                      background: 'rgba(255,255,255,0.05)',
+                      transform: openId === tx.id ? `translateX(-${SWIPE_WIDTH}px)` : 'translateX(0)',
+                      transition: SPRING,
+                      touchAction: isOwn ? 'pan-y' : undefined,
+                    }}
+                  >
+                    {/* Type indicator */}
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-[16px]"
+                      style={{ background: dotBg }}>
+                      {isIngreso ? '↑' : '↓'}
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-baseline justify-between gap-2">
+                        <span className="text-[14px] font-medium truncate" style={{ color: '#F5F5FF' }}>
+                          {tCat(tx.category)}
+                        </span>
+                        <span className="text-[14px] font-semibold tabular-nums flex-shrink-0"
+                          style={{ color: amountColor }}>
+                          {isIngreso ? '+' : '−'}{formatCurrency(Number(tx.amount))}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-[12px]" style={{ color: 'rgba(245,245,255,0.35)' }}>
+                          {formatDate(tx.date)}
+                        </span>
+                        {tx.description && (
+                          <>
+                            <span style={{ color: 'rgba(245,245,255,0.18)' }}>·</span>
+                            <span className="text-[12px] truncate" style={{ color: 'rgba(245,245,255,0.35)' }}>
+                              {tx.description}
+                            </span>
+                          </>
+                        )}
+                        <span className="ml-auto flex-shrink-0">
+                          {tx.profile ? (
+                            <AvatarChip
+                              displayName={tx.profile.display_name}
+                              avatarColor={tx.profile.avatar_color}
+                              avatarUrl={tx.profile.avatar_url}
+                              size="xs"
+                              showName={false}
+                            />
+                          ) : (
+                            <span className="text-[11px]" style={{ color: 'rgba(245,245,255,0.30)' }}>
+                              {tx.responsible}
+                            </span>
+                          )}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               );
             })}

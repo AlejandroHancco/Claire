@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Transaction, TransactionFilters, Profile, TransactionType } from '@/lib/types';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -29,6 +29,12 @@ const defaultFilters: TransactionFilters = {
 export default function DashboardClient({ userEmail, userId }: DashboardClientProps) {
   const { t } = useLanguage();
 
+  // ── Single shared Supabase client instance ─────────────────────────────────
+  // createBrowserClient is already a singleton internally, but we make that
+  // explicit here so every call in this component (fetchData, handleDelete,
+  // the realtime subscription, profile seeding) all share the exact same object.
+  const supabase = useMemo(() => createClient(), []);
+
   // ── Data state ─────────────────────────────────────────────────────────────
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [profiles, setProfiles] = useState<Profile[]>([]);
@@ -46,12 +52,12 @@ export default function DashboardClient({ userEmail, userId }: DashboardClientPr
   );
 
   const filteredTransactions = useMemo(() => {
-    return transactions.filter(t => {
-      if (filters.dateFrom && t.date < filters.dateFrom) return false;
-      if (filters.dateTo && t.date > filters.dateTo) return false;
-      if (filters.type !== 'All' && t.type !== filters.type) return false;
-      if (filters.category !== 'All' && t.category !== filters.category) return false;
-      if (filters.responsible !== 'All' && t.responsible !== filters.responsible) return false;
+    return transactions.filter(tx => {
+      if (filters.dateFrom && tx.date < filters.dateFrom) return false;
+      if (filters.dateTo && tx.date > filters.dateTo) return false;
+      if (filters.type !== 'All' && tx.type !== filters.type) return false;
+      if (filters.category !== 'All' && tx.category !== filters.category) return false;
+      if (filters.responsible !== 'All' && tx.responsible !== filters.responsible) return false;
       return true;
     });
   }, [transactions, filters]);
@@ -70,10 +76,10 @@ export default function DashboardClient({ userEmail, userId }: DashboardClientPr
       || filters.category !== 'All' || filters.responsible !== 'All'),
     [filters]);
 
-  // ── Data fetching ──────────────────────────────────────────────────────────
+  // ── Central refetch — covers transactions, KPIs, charts, and partner totals ─
+  // All tabs derive their data from `transactions` and `profiles` in state, so
+  // a single refetch here propagates to InicioTab, PartnerTab, EstadisticasTab.
   const fetchData = useCallback(async () => {
-    const supabase = createClient();
-
     const [txResult, profilesResult] = await Promise.all([
       supabase.from('transactions').select('*').order('date', { ascending: false }),
       supabase.from('profiles').select('id, display_name, avatar_color, avatar_url, theme'),
@@ -115,31 +121,41 @@ export default function DashboardClient({ userEmail, userId }: DashboardClientPr
 
     setTransactions(txWithProfiles);
     setLoading(false);
+  // supabase is stable (useMemo []); t is intentionally omitted to avoid
+  // re-subscribing the realtime channel on every language change.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [supabase]);
 
+  // Initial fetch on mount
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  // Real-time subscription: refetch whenever any transaction row changes
+  // ── Realtime subscription ──────────────────────────────────────────────────
+  // Use the same `supabase` instance as everything else. Empty deps so the
+  // channel is created once and torn down on unmount — not on every render.
+  // `fetchData` is stable (useCallback with stable deps), so it's safe to
+  // capture in the closure without listing it as a dep.
+  const fetchDataRef = useRef(fetchData);
+  useEffect(() => { fetchDataRef.current = fetchData; }, [fetchData]);
+
   useEffect(() => {
-    const supabase = createClient();
     const channel = supabase
-      .channel('transactions-changes')
+      .channel('realtime:transactions')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'transactions' },
-        () => { fetchData(); }
+        () => { fetchDataRef.current(); }
       )
       .subscribe();
+
     return () => { supabase.removeChannel(channel); };
-  }, [fetchData]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [supabase]); // supabase is stable; fetchDataRef.current used for the callback
 
   // Apply theme from profile to <html> and sync theme-color meta tag
   useEffect(() => {
     const isPink = currentProfile?.theme === 'pink';
     document.documentElement.classList.toggle('pink', isPink);
     const themeColor = isPink ? '#F9D0E0' : '#0D0D1A';
-    // Update all theme-color meta tags (Next.js may emit several for media queries)
     document.querySelectorAll('meta[name="theme-color"]').forEach(el => {
       el.setAttribute('content', themeColor);
     });
@@ -148,30 +164,30 @@ export default function DashboardClient({ userEmail, userId }: DashboardClientPr
   // Auto-seed profile if missing
   useEffect(() => {
     if (!loading && profiles.length > 0 && !profiles.find(p => p.id === userId)) {
-      const supabase = createClient();
       supabase.from('profiles').upsert({
         id: userId,
         display_name: userEmail.split('@')[0],
         avatar_color: '#A78BFA',
       }).then(() => fetchData());
     }
-  }, [loading, profiles, userId, userEmail, fetchData]);
+  }, [loading, profiles, userId, userEmail, fetchData, supabase]);
 
   // ── Handlers ───────────────────────────────────────────────────────────────
   const handleDelete = useCallback(async (id: string) => {
-    const supabase = createClient();
     const { error } = await supabase.from('transactions').delete().eq('id', id);
     if (error) {
       toast.error(t('error_eliminar'));
     } else {
       toast.success(t('exito_eliminado'));
+      // Optimistic update — realtime subscription will confirm
       setTransactions(prev => prev.filter(tx => tx.id !== id));
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [supabase]);
 
   const handleSuccess = useCallback(() => {
     setModalOpen(false);
+    // Explicit refetch for immediate feedback; realtime subscription also fires
     fetchData();
   }, [fetchData]);
 
@@ -201,7 +217,7 @@ export default function DashboardClient({ userEmail, userId }: DashboardClientPr
       {/* 390px centered column */}
       <div className="max-w-[390px] mx-auto min-h-dvh relative flex flex-col"
         style={{ paddingTop: 'env(safe-area-inset-top)' }}>
-        {/* Scrollable tab content — no top header */}
+        {/* Scrollable tab content */}
         <main
           className="flex-1 overflow-y-auto"
           style={{ paddingBottom: 'calc(68px + env(safe-area-inset-bottom) + 12px + 16px)' }}
