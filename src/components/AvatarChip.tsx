@@ -1,4 +1,5 @@
 'use client';
+import Image from 'next/image';
 
 interface AvatarChipProps {
   displayName: string;
@@ -30,12 +31,14 @@ export default function AvatarChip({ displayName, avatarColor, avatarUrl, size =
   return (
     <div className={`flex items-center gap-2 ${className}`}>
       {avatarUrl ? (
-        <img
-          src={avatarUrl}
-          alt={displayName}
-          className={`${sizeMap[size]} rounded-full object-cover flex-shrink-0`}
-          style={{ border: `1px solid ${hex}55` }}
-        />
+          <Image
+              src={avatarUrl}
+              alt={displayName}
+              width={44}
+              height={44}
+              className={`${sizeMap[size]} rounded-full object-cover flex-shrink-0`}
+              style={{ border: `1px solid ${hex}55` }}
+          />
       ) : (
         <div
           className={`${sizeMap[size]} rounded-full flex items-center justify-center font-semibold flex-shrink-0`}

@@ -19,18 +19,15 @@ interface GoalSheetProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (title: string, target: number, deadline: string) => Promise<void>;
-  onDelete?: () => Promise<void>;
   initial?: SavingsGoalType | null;
 }
 
-function GoalSheet({ isOpen, onClose, onSave, onDelete, initial }: GoalSheetProps) {
+function GoalSheet({ isOpen, onClose, onSave, initial }: GoalSheetProps) {
   const { t } = useLanguage();
   const [title, setTitle] = useState('');
   const [target, setTarget] = useState('');
   const [deadline, setDeadline] = useState('');
   const [saving, setSaving] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-  const [confirmDelete, setConfirmDelete] = useState(false);
   const [errors, setErrors] = useState<{ title?: string; target?: string }>({});
 
   useEffect(() => {
@@ -39,16 +36,10 @@ function GoalSheet({ isOpen, onClose, onSave, onDelete, initial }: GoalSheetProp
       setTarget(initial?.target_amount ? String(initial.target_amount) : '');
       setDeadline(initial?.deadline ?? '');
       setErrors({});
-      setConfirmDelete(false);
     }
   }, [isOpen, initial]);
 
-  const handleDelete = async () => {
-    if (!onDelete) return;
-    setDeleting(true);
-    await onDelete();
-    setDeleting(false);
-  };
+
 
   const handleSave = async () => {
     const errs: typeof errors = {};
