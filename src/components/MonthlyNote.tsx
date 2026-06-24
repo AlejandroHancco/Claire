@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { MonthlyNote as MonthlyNoteType, Profile } from '@/lib/types';
 import BottomSheet from '@/components/BottomSheet';
+import AvatarChip from '@/components/AvatarChip';
 import toast from 'react-hot-toast';
 
 interface MonthlyNoteProps {
@@ -36,6 +37,9 @@ function getInitials(name: string): string {
 export default function MonthlyNote({ userId, profiles }: MonthlyNoteProps) {
   const [myNote, setMyNote] = useState('');
   const [partnerNote, setPartnerNote] = useState<MonthlyNoteType | null>(null);
+  // Resolved once via the partners table — independent of whether a note exists
+  const [partnerId, setPartnerId] = useState<string | null>(null);
+  const [partnerIdLoaded, setPartnerIdLoaded] = useState(false);
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -46,10 +50,29 @@ export default function MonthlyNote({ userId, profiles }: MonthlyNoteProps) {
   const currentMonth = getCurrentMonth();
   const monthLabel = capitalizeFirst(getMonthLabel());
 
-  const myProfile = profiles.find(p => p.id === userId);
-  const partnerProfile = partnerNote ? profiles.find(p => p.id === partnerNote.user_id) : null;
+  // ── Step 1: resolve the partner's user ID once via the partners table ────────
+  // This runs regardless of notes, so the partner name/avatar is always correct.
+  useEffect(() => {
+    let cancelled = false;
+    createClient()
+      .from('partners')
+      .select('user_id_1, user_id_2')
+      .or(`user_id_1.eq.${userId},user_id_2.eq.${userId}`)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (cancelled) return;
+        const pId = data
+          ? (data.user_id_1 === userId ? data.user_id_2 : data.user_id_1)
+          : null;
+        setPartnerId(pId);
+        setPartnerIdLoaded(true);
+      });
+    return () => { cancelled = true; };
+  }, [userId]);
 
+  // ── Step 2: fetch notes once partner ID is known ─────────────────────────────
   const fetchNotes = useCallback(async () => {
+    if (!partnerIdLoaded) return;
     const supabase = createClient();
     const { data } = await supabase
       .from('monthly_notes')
@@ -57,13 +80,11 @@ export default function MonthlyNote({ userId, profiles }: MonthlyNoteProps) {
       .eq('month', currentMonth);
 
     const notes = data ?? [];
-    const mine = notes.find(n => n.user_id === userId);
-    const partner = notes.find(n => n.user_id !== userId) ?? null;
-
-    setMyNote(mine?.note ?? '');
-    setPartnerNote(partner);
+    setMyNote(notes.find(n => n.user_id === userId)?.note ?? '');
+    // Use explicit partnerId — correct even when the partner has no note
+    setPartnerNote(partnerId ? (notes.find(n => n.user_id === partnerId) ?? null) : null);
     setLoaded(true);
-  }, [userId, currentMonth]);
+  }, [userId, currentMonth, partnerId, partnerIdLoaded]);
 
   useEffect(() => { fetchNotes(); }, [fetchNotes]);
 
@@ -74,7 +95,6 @@ export default function MonthlyNote({ userId, profiles }: MonthlyNoteProps) {
       { user_id: userId, month: currentMonth, note: text },
       { onConflict: 'user_id,month' }
     );
-
     setSaving(false);
     if (error) {
       toast.error('Error al guardar la nota');
@@ -95,6 +115,12 @@ export default function MonthlyNote({ userId, profiles }: MonthlyNoteProps) {
     save(myNote);
   };
 
+  // ── Derived display values ───────────────────────────────────────────────────
+  const myProfile = profiles.find(p => p.id === userId);
+  // Partner profile is resolved by partnerId — NOT by partnerNote.user_id.
+  // This means the name and avatar are correct even when the partner has no note.
+  const partnerProfile = partnerId ? (profiles.find(p => p.id === partnerId) ?? null) : null;
+
   const myName = myProfile?.display_name ?? 'Yo';
   const partnerName = partnerProfile?.display_name ?? 'Tu pareja';
   const myColor = myProfile?.avatar_color ?? '#A78BFA';
@@ -110,16 +136,26 @@ export default function MonthlyNote({ userId, profiles }: MonthlyNoteProps) {
           className="flex flex-col gap-2 px-3 py-3 rounded-2xl text-left press"
           style={{
             background: 'rgba(255,255,255,0.05)',
-            border: `1px solid rgba(255,255,255,0.09)`,
+            border: '1px solid rgba(255,255,255,0.09)',
           }}
         >
           <div className="flex items-center gap-2">
-            <div
-              className="w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-[10px] font-semibold"
-              style={{ background: `${myColor}22`, color: myColor }}
-            >
-              {getInitials(myName)}
-            </div>
+            {myProfile?.avatar_url ? (
+              <AvatarChip
+                displayName={myName}
+                avatarColor={myColor}
+                avatarUrl={myProfile.avatar_url}
+                size="xs"
+                showName={false}
+              />
+            ) : (
+              <div
+                className="w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-[10px] font-semibold"
+                style={{ background: `${myColor}22`, color: myColor }}
+              >
+                {getInitials(myName)}
+              </div>
+            )}
             <span className="text-[12px] font-medium truncate" style={{ color: 'rgba(245,245,255,0.60)' }}>
               {myName}
             </span>
@@ -150,12 +186,22 @@ export default function MonthlyNote({ userId, profiles }: MonthlyNoteProps) {
           }}
         >
           <div className="flex items-center gap-2">
-            <div
-              className="w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-[10px] font-semibold"
-              style={{ background: `${partnerColor}22`, color: partnerColor }}
-            >
-              {getInitials(partnerName)}
-            </div>
+            {partnerProfile?.avatar_url ? (
+              <AvatarChip
+                displayName={partnerName}
+                avatarColor={partnerColor}
+                avatarUrl={partnerProfile.avatar_url}
+                size="xs"
+                showName={false}
+              />
+            ) : (
+              <div
+                className="w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-[10px] font-semibold"
+                style={{ background: `${partnerColor}22`, color: partnerColor }}
+              >
+                {getInitials(partnerName)}
+              </div>
+            )}
             <span className="text-[12px] font-medium truncate" style={{ color: 'rgba(245,245,255,0.45)' }}>
               {partnerName}
             </span>

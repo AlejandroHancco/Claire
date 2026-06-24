@@ -22,7 +22,8 @@ async function getCroppedBlob(imageSrc: string, pixelCrop: Area): Promise<Blob> 
   const canvas = document.createElement('canvas');
   canvas.width = 400;
   canvas.height = 400;
-  const ctx = canvas.getContext('2d')!;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Could not get 2d canvas context');
 
   ctx.drawImage(
     image,
@@ -30,13 +31,17 @@ async function getCroppedBlob(imageSrc: string, pixelCrop: Area): Promise<Blob> 
     0, 0, 400, 400,
   );
 
-  return new Promise<Blob>((resolve, reject) =>
-    canvas.toBlob(
-      b => (b ? resolve(b) : reject(new Error('toBlob failed'))),
-      'image/jpeg',
-      0.85,
-    ),
+  // Use explicit Promise wrapper — toBlob is callback-based, not Promise-based
+  const blob = await new Promise<Blob | null>(resolve =>
+    canvas.toBlob(resolve, 'image/jpeg', 0.85),
   );
+
+  if (!blob || blob.size === 0) {
+    throw new Error('Crop produced empty image — toBlob returned null or zero bytes');
+  }
+
+  console.log('[avatar] blob ready — size:', blob.size, 'type:', blob.type);
+  return blob;
 }
 
 export default function AvatarCropModal({ imageSrc, onConfirm, onCancel }: AvatarCropModalProps) {

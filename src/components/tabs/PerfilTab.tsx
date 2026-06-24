@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Profile, AVATAR_COLORS } from '@/lib/types';
@@ -27,6 +27,11 @@ export default function PerfilTab({ userId, userEmail, currentProfile, onProfile
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Single shared client instance — same pattern as DashboardClient.
+  // createBrowserClient reads the auth cookie on initialization; creating a
+  // fresh instance right before each request can race against session hydration.
+  const supabase = useMemo(() => createClient(), []);
+
   const [displayName, setDisplayName] = useState('');
   const [avatarColor, setAvatarColor] = useState('#A78BFA');
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -50,7 +55,6 @@ export default function PerfilTab({ userId, userEmail, currentProfile, onProfile
   const handleSave = async () => {
     if (!displayName.trim()) return;
     setSaving(true);
-    const supabase = createClient();
     const { error } = await supabase.from('profiles').upsert({
       id: userId,
       display_name: displayName.trim(),
@@ -74,7 +78,6 @@ export default function PerfilTab({ userId, userEmail, currentProfile, onProfile
   const handleThemeToggle = async (newTheme: 'dark' | 'pink') => {
     setThemeState(newTheme);
     document.documentElement.classList.toggle('pink', newTheme === 'pink');
-    const supabase = createClient();
     await supabase.from('profiles').update({ theme: newTheme }).eq('id', userId);
     onProfileUpdate({
       id: userId,
@@ -101,31 +104,50 @@ export default function PerfilTab({ userId, userEmail, currentProfile, onProfile
     setCropSrc(null);
     setUploading(true);
     try {
-      const supabase = createClient();
+      // Guard: reject empty blobs before they hit the network
+      if (!blob || blob.size === 0) throw new Error('Blob is empty');
+      console.log('[avatar] uploading — size:', blob.size, 'type:', blob.type);
+
+      // Confirm the shared client has an authenticated session before uploading
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log('[avatar] session present?', !!session, 'uid:', session?.user?.id);
+      if (!session) throw new Error('No auth session — cannot upload');
+
       const path = `${userId}.jpg`;
 
-      const { error: uploadError } = await supabase.storage
+      // @supabase/storage-js wraps Blob in FormData (multipart), which Supabase
+      // Storage rejects. ArrayBuffer hits the raw-body branch → content-type: image/jpeg.
+      const arrayBuffer = await blob.arrayBuffer();
+      const { data: uploadData, error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(path, blob, { upsert: true, contentType: 'image/jpeg' });
+        .upload(path, arrayBuffer, { upsert: true, contentType: 'image/jpeg' });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('[avatar] sdk upload error:', uploadError);
+        throw uploadError;
+      }
+      console.log('[avatar] upload OK:', uploadData);
 
-      const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path);
-      // Cache-bust so browsers fetch the new image immediately
-      const url = `${publicUrl}?t=${Date.now()}`;
+      const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(path);
+      const url = `${urlData.publicUrl}?t=${Date.now()}`;
+      console.log('[avatar] public url:', url);
 
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ avatar_url: url })
         .eq('id', userId);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error('[avatar] profile update error:', JSON.stringify(updateError));
+        throw updateError;
+      }
 
       setAvatarUrl(url);
       const name = displayName.trim() || (currentProfile?.display_name ?? '');
       onProfileUpdate({ id: userId, display_name: name, avatar_color: avatarColor, avatar_url: url, theme });
       toast.success(t('perfil_foto_exito'));
-    } catch {
+    } catch (err) {
+      console.error('[avatar] handleCropConfirm failed:', err);
       toast.error(t('perfil_foto_error'));
     } finally {
       setUploading(false);
@@ -133,7 +155,6 @@ export default function PerfilTab({ userId, userEmail, currentProfile, onProfile
   };
 
   const handleLogout = async () => {
-    const supabase = createClient();
     await supabase.auth.signOut();
     toast.success(t('perfil_sesion_cerrada'));
     router.push('/login');
