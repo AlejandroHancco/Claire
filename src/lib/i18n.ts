@@ -117,7 +117,7 @@ const es = {
   // Common
   error_cargar_tx: 'Error al cargar las transacciones',
   error_eliminar: 'Error al eliminar la transacción',
-  exito_eliminado: 'Transacción eliminada',
+  exito_eliminado: 'Deleted transaction',
 
   // Category display names
   cat_Sueldo: 'Sueldo',

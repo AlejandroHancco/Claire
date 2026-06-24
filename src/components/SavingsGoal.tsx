@@ -142,7 +142,7 @@ function GoalSheet({ isOpen, onClose, onSave, onReset, initial }: GoalSheetProps
                             color: 'var(--color-egreso)',
                         }}
                     >
-                        {resetting ? t('perfil_guardando') : 'Eliminar meta'}
+                        {resetting ? t('perfil_guardando') : 'Delete goal'}
                     </button>
                 )}
 
