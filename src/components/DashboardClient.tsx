@@ -82,7 +82,9 @@ export default function DashboardClient({ userEmail, userId }: DashboardClientPr
   // a single refetch here propagates to InicioTab, PartnerTab, EstadisticasTab.
   const fetchData = useCallback(async () => {
     const [txResult, profilesResult] = await Promise.all([
-      supabase.from('transactions').select('*').order('date', { ascending: false }),
+      supabase.from('transactions').select('*')
+          .order('date', { ascending: false })
+          .order('created_at', { ascending: false }),
       supabase.from('profiles').select('id, display_name, avatar_color, avatar_url, theme'),
     ]);
 
