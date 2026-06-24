@@ -4,11 +4,13 @@ import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { SavingsGoal as SavingsGoalType } from '@/lib/types';
 import { formatCurrency, formatDate } from '@/lib/utils';
+import { useLanguage } from '@/contexts/LanguageContext';
 import BottomSheet from '@/components/BottomSheet';
 import toast from 'react-hot-toast';
 
 interface SavingsGoalProps {
   userId: string;
+  monthBalance: number;
 }
 
 // ─── Edit / Create goal sheet ────────────────────────────────────────────────
@@ -21,6 +23,7 @@ interface GoalSheetProps {
 }
 
 function GoalSheet({ isOpen, onClose, onSave, initial }: GoalSheetProps) {
+  const { t } = useLanguage();
   const [title, setTitle] = useState('');
   const [target, setTarget] = useState('');
   const [deadline, setDeadline] = useState('');
@@ -131,7 +134,7 @@ function GoalSheet({ isOpen, onClose, onSave, initial }: GoalSheetProps) {
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
               </svg>
-              Guardando...
+              {t('perfil_guardando')}
             </>
           ) : 'Guardar'}
         </button>
@@ -140,103 +143,12 @@ function GoalSheet({ isOpen, onClose, onSave, initial }: GoalSheetProps) {
   );
 }
 
-// ─── Add savings sheet ───────────────────────────────────────────────────────
-
-interface AddSavingsSheetProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onAdd: (amount: number) => Promise<void>;
-  currentAmount: number;
-  targetAmount: number;
-}
-
-function AddSavingsSheet({ isOpen, onClose, onAdd, currentAmount, targetAmount }: AddSavingsSheetProps) {
-  const [amount, setAmount] = useState('');
-  const [saving, setSaving] = useState(false);
-  const remaining = Math.max(0, targetAmount - currentAmount);
-
-  useEffect(() => {
-    if (isOpen) setAmount('');
-  }, [isOpen]);
-
-  const handleAdd = async () => {
-    const n = Number(amount);
-    if (!amount || n <= 0) return;
-    setSaving(true);
-    await onAdd(n);
-    setSaving(false);
-  };
-
-  return (
-    <BottomSheet isOpen={isOpen} onClose={onClose} title="Añadir ahorro" snapHeight="65dvh">
-      <div className="px-5 pb-8 space-y-5">
-        {/* Summary row */}
-        <div
-          className="flex justify-between py-3 px-4 rounded-xl text-[13px]"
-          style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}
-        >
-          <div className="text-center">
-            <p style={{ color: 'rgba(245,245,255,0.40)' }}>Acumulado</p>
-            <p className="font-semibold tabular-nums mt-1" style={{ color: '#34D399' }}>{formatCurrency(currentAmount)}</p>
-          </div>
-          <div className="w-px" style={{ background: 'rgba(255,255,255,0.08)' }} />
-          <div className="text-center">
-            <p style={{ color: 'rgba(245,245,255,0.40)' }}>Falta</p>
-            <p className="font-semibold tabular-nums mt-1" style={{ color: '#F5F5FF' }}>{formatCurrency(remaining)}</p>
-          </div>
-        </div>
-
-        <div>
-          <p className="text-[11px] font-medium uppercase tracking-widest mb-2"
-            style={{ color: 'rgba(245,245,255,0.35)' }}>Monto a añadir</p>
-          <div className="relative">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[15px] font-medium"
-              style={{ color: 'rgba(245,245,255,0.40)' }}>S/</span>
-            <input
-              type="number"
-              min="0.01"
-              step="0.01"
-              value={amount}
-              onChange={e => setAmount(e.target.value)}
-              placeholder="0.00"
-              autoFocus
-              className="w-full pl-10 pr-4 py-3 rounded-xl text-[15px] bg-transparent focus:outline-none"
-              style={{
-                background: 'rgba(255,255,255,0.05)',
-                border: '1px solid rgba(255,255,255,0.09)',
-                color: '#F5F5FF',
-              }}
-            />
-          </div>
-        </div>
-
-        <button
-          onClick={handleAdd}
-          disabled={saving || !amount || Number(amount) <= 0}
-          className="w-full h-[52px] rounded-full text-[15px] font-semibold text-white press flex items-center justify-center gap-2"
-          style={{ background: saving ? 'rgba(52,211,153,0.50)' : '#34D399' }}
-        >
-          {saving ? (
-            <>
-              <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-              </svg>
-              Añadiendo...
-            </>
-          ) : 'Añadir ahorro'}
-        </button>
-      </div>
-    </BottomSheet>
-  );
-}
-
 // ─── Main SavingsGoal component ─────────────────────────────────────────────
 
-export default function SavingsGoal({ userId }: SavingsGoalProps) {
+export default function SavingsGoal({ userId, monthBalance }: SavingsGoalProps) {
+  const { t } = useLanguage();
   const [goal, setGoal] = useState<SavingsGoalType | null | undefined>(undefined);
   const [editOpen, setEditOpen] = useState(false);
-  const [addOpen, setAddOpen] = useState(false);
 
   const fetchGoal = useCallback(async () => {
     const supabase = createClient();
@@ -275,21 +187,6 @@ export default function SavingsGoal({ userId }: SavingsGoalProps) {
     setEditOpen(false);
   };
 
-  const handleAddSavings = async (amount: number) => {
-    if (!goal) return;
-    const supabase = createClient();
-    const newAmount = Number(goal.current_amount) + amount;
-    const { error } = await supabase
-      .from('savings_goals')
-      .update({ current_amount: newAmount })
-      .eq('id', goal.id);
-
-    if (error) { toast.error('Error al añadir ahorro'); return; }
-    setGoal(prev => prev ? { ...prev, current_amount: newAmount } : prev);
-    toast.success(`${formatCurrency(amount)} añadido al ahorro`);
-    setAddOpen(false);
-  };
-
   // Loading skeleton
   if (goal === undefined) {
     return (
@@ -298,16 +195,18 @@ export default function SavingsGoal({ userId }: SavingsGoalProps) {
     );
   }
 
-  // Empty state — compact card
+  // Empty state — prompt to create a goal
   if (goal === null) {
     return (
       <>
         <button
           onClick={() => setEditOpen(true)}
-          className="w-full mx-4 flex items-center gap-3 px-4 py-3.5 rounded-2xl press"
+          className="flex items-center gap-3 px-4 py-3.5 rounded-2xl press"
           style={{
             background: 'rgba(255,255,255,0.04)',
             border: '1px dashed rgba(255,255,255,0.12)',
+            marginLeft: '1rem',
+            marginRight: '1rem',
             width: 'calc(100% - 2rem)',
           }}
         >
@@ -324,7 +223,8 @@ export default function SavingsGoal({ userId }: SavingsGoalProps) {
     );
   }
 
-  const current = Number(goal.current_amount);
+  // Progress is driven live by the current month's net balance
+  const current = Math.max(0, monthBalance);
   const target = Number(goal.target_amount);
   const percentage = target > 0 ? (current / target) * 100 : 0;
   const isComplete = percentage >= 100;
@@ -332,7 +232,6 @@ export default function SavingsGoal({ userId }: SavingsGoalProps) {
 
   return (
     <>
-      {/* Compact glass card */}
       <div
         className="mx-4 rounded-2xl px-4 py-3.5 space-y-2.5"
         style={{
@@ -347,63 +246,47 @@ export default function SavingsGoal({ userId }: SavingsGoalProps) {
             <div className="min-w-0">
               <p className="text-[14px] font-medium truncate" style={{ color: '#F5F5FF' }}>{goal.title}</p>
               <p className="text-[12px] mt-0.5" style={{ color: 'rgba(245,245,255,0.40)' }}>
-                {formatCurrency(current)} / {formatCurrency(target)}
-                {goal.deadline && ` · hasta ${formatDate(goal.deadline)}`}
+                {t('hero_balance')}: {formatCurrency(current)} / {formatCurrency(target)}
+                {goal.deadline && ` · ${formatDate(goal.deadline)}`}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <button
-              onClick={() => setAddOpen(true)}
-              className="px-3 py-1.5 rounded-full text-[12px] font-medium press"
-              style={{
-                background: 'rgba(52,211,153,0.12)',
-                border: '1px solid rgba(52,211,153,0.25)',
-                color: '#34D399',
-              }}
-            >
-              + Añadir
-            </button>
-            <button
-              onClick={() => setEditOpen(true)}
-              className="px-3 py-1.5 rounded-full text-[12px] font-medium press"
-              style={{
-                background: 'rgba(255,255,255,0.05)',
-                border: '1px solid rgba(255,255,255,0.09)',
-                color: 'rgba(245,245,255,0.45)',
-              }}
-            >
-              Editar
-            </button>
-          </div>
+          <button
+            onClick={() => setEditOpen(true)}
+            className="px-3 py-1.5 rounded-full text-[12px] font-medium press flex-shrink-0"
+            style={{
+              background: 'rgba(255,255,255,0.05)',
+              border: '1px solid rgba(255,255,255,0.09)',
+              color: 'rgba(245,245,255,0.45)',
+            }}
+          >
+            Editar
+          </button>
         </div>
 
         {/* Progress bar */}
         <div>
           <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.08)' }}>
             <div
-              className="h-full rounded-full bar-animate"
+              className="h-full rounded-full"
               style={{ width: `${Math.min(100, percentage)}%`, background: barColor, transition: 'width 700ms ease' }}
             />
           </div>
           <div className="flex justify-between mt-1">
             <span className="text-[11px] font-medium" style={{ color: barColor }}>
-              {percentage.toFixed(0)}%
+              {Math.min(100, percentage).toFixed(0)}%
             </span>
-            {isComplete && <span className="text-[11px]" style={{ color: '#34D399' }}>¡Meta alcanzada! </span>}
+            {isComplete && (
+              <span className="text-[11px] font-medium" style={{ color: '#34D399' }}>
+                {t('meta_alcanzada')}
+              </span>
+            )}
           </div>
         </div>
       </div>
 
       <GoalSheet isOpen={editOpen} onClose={() => setEditOpen(false)} onSave={handleSaveGoal} initial={goal} />
-      <AddSavingsSheet
-        isOpen={addOpen}
-        onClose={() => setAddOpen(false)}
-        onAdd={handleAddSavings}
-        currentAmount={current}
-        targetAmount={target}
-      />
     </>
   );
 }

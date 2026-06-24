@@ -1,23 +1,22 @@
 'use client';
 
-import { useMemo, useState, useRef, useEffect } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend,
   LineChart, Line,
 } from 'recharts';
-import { Transaction } from '@/lib/types';
+import { Transaction, TransactionFilters, INGRESO_CATEGORIES, EGRESO_CATEGORIES } from '@/lib/types';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { formatCurrency, formatDate, getMonthKey, getMonthLabel } from '@/lib/utils';
 import AvatarChip from '@/components/AvatarChip';
+import BottomSheet from '@/components/BottomSheet';
 
 interface EstadisticasTabProps {
   transactions: Transaction[];
-  filteredTransactions?: Transaction[];
-  onFilterTap?: () => void;
-  hasActiveFilters?: boolean;
-  scrollToHistory?: boolean;
-  onScrollHandled?: () => void;
+  userId: string;
+  openHistory?: boolean;
+  onHistoryOpened?: () => void;
 }
 
 type DateRange = '1M' | '3M' | '6M' | 'Todo';
@@ -34,7 +33,6 @@ const tooltipStyle = {
 
 const axisStyle = { fill: 'rgba(245,245,255,0.35)', fontSize: 11 };
 
-// Smart Y axis formatter: avoids "S/0k" for sub-1000 values
 function formatYAxis(v: number): string {
   const abs = Math.abs(v);
   if (abs === 0) return 'S/ 0';
@@ -47,7 +45,6 @@ function formatYAxis(v: number): string {
   return `${pfx}S/ ${abs.toFixed(0)}`;
 }
 
-// Compute a domain ceiling with ~20% headroom, snapped to a round number
 function niceMax(dataMax: number): number {
   if (dataMax <= 0) return 100;
   const withPad = dataMax * 1.2;
@@ -79,26 +76,28 @@ function getMonthsForRange(range: DateRange, transactions: Transaction[]): strin
   return months;
 }
 
+const DEFAULT_HIST_FILTERS: TransactionFilters = {
+  dateFrom: '', dateTo: '', type: 'All', category: 'All', responsible: 'All',
+};
+
 export default function EstadisticasTab({
   transactions,
-  filteredTransactions,
-  onFilterTap,
-  hasActiveFilters,
-  scrollToHistory,
-  onScrollHandled,
+  userId,
+  openHistory,
+  onHistoryOpened,
 }: EstadisticasTabProps) {
   const { t, tCat } = useLanguage();
   const [range, setRange] = useState<DateRange>('6M');
-  const historyRef = useRef<HTMLDivElement>(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [histFilters, setHistFilters] = useState<TransactionFilters>(DEFAULT_HIST_FILTERS);
 
+  // Open the history sheet when parent requests it (e.g. "Ver todo" from Inicio)
   useEffect(() => {
-    if (!scrollToHistory) return;
-    const timer = setTimeout(() => {
-      historyRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      onScrollHandled?.();
-    }, 150);
-    return () => clearTimeout(timer);
-  }, [scrollToHistory, onScrollHandled]);
+    if (openHistory) {
+      setHistoryOpen(true);
+      onHistoryOpened?.();
+    }
+  }, [openHistory, onHistoryOpened]);
 
   const RANGES: { key: DateRange; label: string }[] = [
     { key: '1M', label: t('range_1m') },
@@ -107,6 +106,7 @@ export default function EstadisticasTab({
     { key: 'Todo', label: t('range_all') },
   ];
 
+  // ── Chart data (uses the date-range chips) ─────────────────────────────────
   const filtered = useMemo(() => {
     const cutoff = getDateCutoff(range);
     if (!cutoff) return transactions;
@@ -149,7 +149,6 @@ export default function EstadisticasTab({
       return { name: getMonthLabel(monthKey), [balLabel]: ing - egr };
     }), [filtered, months, balLabel]);
 
-  // Pre-compute domains so bars never touch the top edge
   const barMax = useMemo(() => {
     const vals = monthlyData.flatMap(d => [Number(d[ingLabel] ?? 0), Number(d[egrLabel] ?? 0)]);
     return niceMax(Math.max(0, ...vals));
@@ -166,13 +165,48 @@ export default function EstadisticasTab({
     return niceMax(Math.max(0, ...vals));
   }, [trendData, balLabel]);
 
-  // History list — respects dashboard filters (if provided) + same date range as charts
-  const historySorted = useMemo(() => {
-    const base = filteredTransactions ?? transactions;
-    const cutoff = getDateCutoff(range);
-    const inRange = cutoff ? base.filter(tx => tx.date >= cutoff) : base;
-    return [...inRange].sort((a, b) => b.date.localeCompare(a.date));
-  }, [filteredTransactions, transactions, range]);
+  // ── History bottom-sheet filter state ──────────────────────────────────────
+  const histCategoryOptions = useMemo(() => {
+    if (histFilters.type === 'Ingreso') return [...INGRESO_CATEGORIES];
+    if (histFilters.type === 'Egreso') return [...EGRESO_CATEGORIES];
+    return Array.from(new Set(transactions.map(tx => tx.category))).sort();
+  }, [histFilters.type, transactions]);
+
+  const histResponsibles = useMemo(() =>
+    Array.from(new Set(transactions.map(tx => tx.responsible))).sort(),
+    [transactions]);
+
+  const histHasActive = !!(
+    histFilters.dateFrom || histFilters.dateTo ||
+    histFilters.type !== 'All' || histFilters.category !== 'All' || histFilters.responsible !== 'All'
+  );
+
+  const updateHistFilter = (partial: Partial<TransactionFilters>) => {
+    setHistFilters(prev => {
+      const next = { ...prev, ...partial };
+      if (partial.type !== undefined && partial.type !== prev.type) next.category = 'All';
+      return next;
+    });
+  };
+  const resetHistFilters = () => setHistFilters(DEFAULT_HIST_FILTERS);
+
+  const historyFiltered = useMemo(() => {
+    return [...transactions].filter(tx => {
+      if (histFilters.dateFrom && tx.date < histFilters.dateFrom) return false;
+      if (histFilters.dateTo && tx.date > histFilters.dateTo) return false;
+      if (histFilters.type !== 'All' && tx.type !== histFilters.type) return false;
+      if (histFilters.category !== 'All' && tx.category !== histFilters.category) return false;
+      if (histFilters.responsible !== 'All' && tx.responsible !== histFilters.responsible) return false;
+      return true;
+    }).sort((a, b) => b.date.localeCompare(a.date));
+  }, [transactions, histFilters]);
+
+  // ── Shared chip style helper ───────────────────────────────────────────────
+  const chip = (active: boolean, accent = '#A78BFA') => ({
+    background: active ? `${accent}1A` : 'rgba(255,255,255,0.05)',
+    border: `1px solid ${active ? `${accent}40` : 'rgba(255,255,255,0.09)'}`,
+    color: active ? accent : 'rgba(245,245,255,0.50)',
+  });
 
   return (
     <div className="pb-6">
@@ -181,7 +215,7 @@ export default function EstadisticasTab({
         <p className="text-[13px] mt-0.5" style={{ color: 'rgba(245,245,255,0.40)' }}>{t('stats_subtitulo')}</p>
       </div>
 
-      {/* Date range chips */}
+      {/* Date range chips — for charts only */}
       <div className="px-4 flex gap-2 mb-5">
         {RANGES.map(r => {
           const active = range === r.key;
@@ -204,7 +238,7 @@ export default function EstadisticasTab({
 
       {/* Empty state */}
       {filtered.length === 0 && (
-        <div className="px-4 py-16 text-center">
+        <div className="px-4 py-14 text-center">
           <p className="text-[32px] mb-3">📊</p>
           <p className="text-[15px] font-medium" style={{ color: 'rgba(245,245,255,0.45)' }}>
             {t('stats_sin_datos')}
@@ -282,61 +316,193 @@ export default function EstadisticasTab({
               </LineChart>
             </ResponsiveContainer>
           </div>
+        </div>
+      )}
 
-          {/* ── Transaction history ───────────────────────────────────────── */}
-          <div ref={historyRef} className="rounded-2xl overflow-hidden"
-            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-            {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3"
-              style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-              <p className="text-[13px] font-semibold" style={{ color: '#F5F5FF' }}>
+      {/* ── Ver todas las transacciones ─────────────────────────────────── */}
+      {transactions.length > 0 && (
+        <div className="px-4 pt-5">
+          <button
+            onClick={() => setHistoryOpen(true)}
+            className="w-full py-3.5 rounded-2xl text-[14px] font-semibold press flex items-center justify-center gap-2"
+            style={{
+              background: 'rgba(167,139,250,0.08)',
+              border: '1px solid rgba(167,139,250,0.18)',
+              color: '#A78BFA',
+            }}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+            </svg>
+            {t('stats_ver_todas')}
+            <span className="text-[12px] font-medium" style={{ color: 'rgba(167,139,250,0.55)' }}>
+              · {transactions.length}
+            </span>
+          </button>
+        </div>
+      )}
+
+      {/* ── Full transaction history bottom sheet ───────────────────────── */}
+      <BottomSheet isOpen={historyOpen} onClose={() => setHistoryOpen(false)} snapHeight="96dvh">
+        <div className="pb-8">
+
+          {/* Sheet header */}
+          <div className="flex items-start justify-between px-4 pb-4 mb-1"
+            style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+            <div>
+              <p className="text-[17px] font-semibold" style={{ color: '#F5F5FF' }}>
                 {t('stats_historial')}
               </p>
-              <div className="flex items-center gap-2">
-                {onFilterTap && (
+              <p className="text-[13px] mt-0.5" style={{ color: 'rgba(245,245,255,0.40)' }}>
+                {historyFiltered.length} {historyFiltered.length === 1 ? t('inicio_registro') : t('inicio_registros')}
+                {histHasActive && <span style={{ color: '#A78BFA' }}> · {t('inicio_filtros_activos')}</span>}
+              </p>
+            </div>
+            <button
+              onClick={() => setHistoryOpen(false)}
+              className="w-8 h-8 rounded-full flex items-center justify-center press flex-shrink-0"
+              style={{ background: 'rgba(255,255,255,0.07)' }}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                style={{ color: 'rgba(245,245,255,0.60)' }}>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          {/* ── Inline filters ────────────────────────────── */}
+          <div className="px-4 pt-3 pb-4 space-y-3">
+
+            {/* Tipo */}
+            <div className="flex gap-1.5">
+              {([['All', t('filtros_todos'), '#A78BFA'], ['Ingreso', t('tipo_ingreso'), '#34D399'], ['Egreso', t('tipo_egreso'), '#F87171']] as const).map(
+                ([tp, label, accent]) => (
                   <button
-                    onClick={onFilterTap}
-                    className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium press"
-                    style={{
-                      background: hasActiveFilters ? 'rgba(167,139,250,0.18)' : 'rgba(255,255,255,0.06)',
-                      border: `1px solid ${hasActiveFilters ? 'rgba(167,139,250,0.35)' : 'rgba(255,255,255,0.09)'}`,
-                      color: hasActiveFilters ? '#A78BFA' : 'rgba(245,245,255,0.50)',
-                    }}
+                    key={tp}
+                    onClick={() => updateHistFilter({ type: tp as TransactionFilters['type'] })}
+                    className="flex-1 py-2 rounded-full text-[13px] font-medium press transition-all"
+                    style={chip(histFilters.type === tp, accent)}
                   >
-                    <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
-                    </svg>
-                    {hasActiveFilters ? t('inicio_filtros_activos') : t('inicio_filtrar')}
+                    {label}
                   </button>
-                )}
-                <span className="text-[12px]" style={{ color: 'rgba(245,245,255,0.40)' }}>
-                  {historySorted.length} {historySorted.length === 1 ? t('inicio_registro') : t('inicio_registros')}
-                </span>
-              </div>
+                )
+              )}
             </div>
 
-            {/* Scrollable list — max 400px, no infinite page growth */}
-            <div style={{ maxHeight: 400, overflowY: 'auto' }}>
-              {historySorted.map((tx, idx) => {
+            {/* Categoría */}
+            <div className="flex gap-1.5 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+              {['All', ...histCategoryOptions].map(cat => {
+                const active = histFilters.category === cat;
+                return (
+                  <button
+                    key={cat}
+                    onClick={() => updateHistFilter({ category: cat })}
+                    className="px-3 py-1.5 rounded-full text-[12px] font-medium press flex-shrink-0 transition-all"
+                    style={chip(active)}
+                  >
+                    {cat === 'All' ? t('filtros_todas') : tCat(cat)}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Responsable */}
+            {histResponsibles.length > 1 && (
+              <div className="flex gap-1.5 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+                {['All', ...histResponsibles].map(r => {
+                  const active = histFilters.responsible === r;
+                  return (
+                    <button
+                      key={r}
+                      onClick={() => updateHistFilter({ responsible: r })}
+                      className="px-3 py-1.5 rounded-full text-[12px] font-medium press flex-shrink-0 transition-all"
+                      style={chip(active)}
+                    >
+                      {r === 'All' ? t('filtros_todos') : r}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Período */}
+            <div className="grid grid-cols-2 gap-2">
+              {([
+                { label: t('filtros_desde'), key: 'dateFrom' as const, value: histFilters.dateFrom },
+                { label: t('filtros_hasta'), key: 'dateTo' as const, value: histFilters.dateTo },
+              ] as const).map(({ label, key, value }) => (
+                <div key={key} className="relative">
+                  <div
+                    className="flex flex-col gap-0.5 px-3 py-2.5 rounded-xl"
+                    style={{
+                      background: value ? 'rgba(167,139,250,0.10)' : 'rgba(255,255,255,0.05)',
+                      border: `1px solid ${value ? 'rgba(167,139,250,0.25)' : 'rgba(255,255,255,0.09)'}`,
+                    }}
+                  >
+                    <span className="text-[10px]" style={{ color: 'rgba(245,245,255,0.35)' }}>{label}</span>
+                    <span className="text-[12px] font-medium" style={{ color: value ? '#A78BFA' : 'rgba(245,245,255,0.35)' }}>
+                      {value ? formatDate(value) : t('filtros_seleccionar')}
+                    </span>
+                  </div>
+                  <input
+                    type="date"
+                    value={value}
+                    onChange={e => updateHistFilter({ [key]: e.target.value })}
+                    className="absolute inset-0 opacity-0 cursor-pointer"
+                    style={{ colorScheme: 'dark' }}
+                  />
+                </div>
+              ))}
+            </div>
+
+            {/* Clear filters */}
+            {histHasActive && (
+              <button
+                onClick={resetHistFilters}
+                className="w-full py-2 rounded-full text-[13px] font-medium press"
+                style={{
+                  background: 'rgba(248,113,113,0.08)',
+                  border: '1px solid rgba(248,113,113,0.18)',
+                  color: '#F87171',
+                }}
+              >
+                {t('filtros_limpiar')}
+              </button>
+            )}
+          </div>
+
+          {/* ── Transaction list ──────────────────────────── */}
+          <div className="px-4 space-y-2 pb-6">
+            {historyFiltered.length === 0 ? (
+              <div className="py-12 text-center">
+                <p className="text-[28px] mb-2">🔍</p>
+                <p className="text-[14px] font-medium" style={{ color: 'rgba(245,245,255,0.40)' }}>
+                  {t('inicio_sin_resultados')}
+                </p>
+                <p className="text-[12px] mt-1" style={{ color: 'rgba(245,245,255,0.25)' }}>
+                  {t('inicio_ajusta_filtros')}
+                </p>
+              </div>
+            ) : (
+              historyFiltered.map(tx => {
+                const isOwn = tx.user_id === userId;
                 const isIngreso = tx.type === 'Ingreso';
                 const amountColor = isIngreso ? 'var(--color-ingreso)' : 'var(--color-egreso)';
                 const dotBg = isIngreso ? 'rgba(52,211,153,0.15)' : 'rgba(248,113,113,0.15)';
-                const isLast = idx === historySorted.length - 1;
                 return (
                   <div
                     key={tx.id}
-                    className="flex items-center gap-3 px-4 py-3"
-                    style={isLast ? undefined : { borderBottom: '1px solid rgba(255,255,255,0.04)' }}
+                    className="flex items-center gap-3 px-3 py-3 rounded-2xl"
+                    style={{
+                      background: isOwn ? 'var(--card-surface-own)' : 'var(--card-surface)',
+                      border: '1px solid rgba(255,255,255,0.08)',
+                      ...(isOwn ? { borderLeft: '3px solid rgba(167,139,250,0.35)' } : {}),
+                    }}
                   >
-                    {/* Type dot */}
-                    <div
-                      className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-[14px]"
-                      style={{ background: dotBg }}
-                    >
+                    <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 text-[15px]"
+                      style={{ background: dotBg }}>
                       {isIngreso ? '↑' : '↓'}
                     </div>
-
-                    {/* Content */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-baseline justify-between gap-2">
                         <span className="text-[13px] font-medium truncate" style={{ color: '#F5F5FF' }}>
@@ -378,11 +544,11 @@ export default function EstadisticasTab({
                     </div>
                   </div>
                 );
-              })}
-            </div>
+              })
+            )}
           </div>
         </div>
-      )}
+      </BottomSheet>
     </div>
   );
 }

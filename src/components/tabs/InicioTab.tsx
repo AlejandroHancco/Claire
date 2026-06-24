@@ -118,8 +118,8 @@ export default function InicioTab({
         loading={loading}
       />
 
-      {/* Savings goal */}
-      <SavingsGoal userId={userId} />
+      {/* Savings goal — progress driven by current month's net balance */}
+      <SavingsGoal userId={userId} monthBalance={currentMonthData.balance} />
 
       {/* Monthly notes */}
       <MonthlyNote userId={userId} profiles={profiles} />

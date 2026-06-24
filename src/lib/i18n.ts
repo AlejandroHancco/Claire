@@ -55,6 +55,8 @@ const es = {
 
   // Stats tab
   stats_historial: 'Historial',
+  stats_ver_todas: 'Ver todas las transacciones',
+  meta_alcanzada: '¡Meta alcanzada!',
   stats_titulo: 'Estadísticas',
   stats_subtitulo: 'Análisis de tus finanzas',
   stats_sin_datos: 'Sin datos para este período',
@@ -85,10 +87,11 @@ const es = {
   perfil_foto: 'Foto de perfil',
   perfil_cambiar_foto: 'Cambiar foto',
   perfil_error: 'Error al guardar el perfil',
-  perfil_exito: 'Perfil actualizado',
+  perfil_exito: 'Perfil guardado',
   perfil_sesion_cerrada: 'Sesión cerrada',
   perfil_foto_error: 'Error al subir la foto',
   perfil_foto_exito: 'Foto actualizada',
+  perfil_preferencias: 'Preferencias',
   tema_oscuro: 'Oscuro',
   tema_rosa: 'Rosa',
 
@@ -191,6 +194,8 @@ const en: TranslationMap = {
   partner_combinados: 'Combined totals',
 
   stats_historial: 'History',
+  stats_ver_todas: 'View all transactions',
+  meta_alcanzada: 'Goal reached!',
   stats_titulo: 'Statistics',
   stats_subtitulo: 'Your financial analysis',
   stats_sin_datos: 'No data for this period',
@@ -220,10 +225,11 @@ const en: TranslationMap = {
   perfil_foto: 'Profile photo',
   perfil_cambiar_foto: 'Change photo',
   perfil_error: 'Error saving profile',
-  perfil_exito: 'Profile updated',
+  perfil_exito: 'Profile saved',
   perfil_sesion_cerrada: 'Signed out',
   perfil_foto_error: 'Error uploading photo',
   perfil_foto_exito: 'Photo updated',
+  perfil_preferencias: 'Settings',
   tema_oscuro: 'Noire',
   tema_rosa: 'Claire',
 

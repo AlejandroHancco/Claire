@@ -44,7 +44,7 @@ export default function DashboardClient({ userEmail, userId }: DashboardClientPr
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [transactionType, setTransactionType] = useState<TransactionType>('Ingreso');
   const [activeTab, setActiveTab] = useState<TabKey>('inicio');
-  const [scrollToHistory, setScrollToHistory] = useState(false);
+  const [openHistory, setOpenHistory] = useState(false);
 
   // ── Derived state ──────────────────────────────────────────────────────────
   const currentProfile = useMemo(
@@ -233,7 +233,7 @@ export default function DashboardClient({ userEmail, userId }: DashboardClientPr
               onDelete={handleDelete}
               onFilterTap={() => setFiltersOpen(true)}
               hasActiveFilters={hasActiveFilters}
-              onViewAll={() => { setActiveTab('estadisticas'); setScrollToHistory(true); }}
+              onViewAll={() => { setActiveTab('estadisticas'); setOpenHistory(true); }}
             />
           )}
 
@@ -248,11 +248,9 @@ export default function DashboardClient({ userEmail, userId }: DashboardClientPr
           {activeTab === 'estadisticas' && (
             <EstadisticasTab
               transactions={transactions}
-              filteredTransactions={filteredTransactions}
-              onFilterTap={() => setFiltersOpen(true)}
-              hasActiveFilters={hasActiveFilters}
-              scrollToHistory={scrollToHistory}
-              onScrollHandled={() => setScrollToHistory(false)}
+              userId={userId}
+              openHistory={openHistory}
+              onHistoryOpened={() => setOpenHistory(false)}
             />
           )}
 

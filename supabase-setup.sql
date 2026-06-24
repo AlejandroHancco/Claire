@@ -105,3 +105,14 @@ ON monthly_notes FOR INSERT WITH CHECK (auth.uid() = user_id);
 
 CREATE POLICY "Users can update own monthly notes"
 ON monthly_notes FOR UPDATE USING (auth.uid() = user_id);
+
+
+-- ── 5. Profile migrations (run after initial setup) ──────────
+-- Add theme column (if not yet present)
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS theme TEXT DEFAULT 'dark';
+
+-- Add avatar_url column (if not yet present)
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS avatar_url TEXT;
+
+-- Add language column for cross-device language sync
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS language TEXT DEFAULT 'es';
