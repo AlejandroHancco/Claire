@@ -137,9 +137,33 @@ const es = {
   cat_Comida: 'Comida',
   cat_Otro: 'Otro',
 
+  // Savings goal
+  meta_titulo: 'Meta de ahorro',
+  meta_nueva: 'Nueva meta',
+  meta_actualizar: 'Actualizar meta',
+  meta_titulo_label: 'Título',
+  meta_monto_objetivo: 'Monto objetivo',
+  meta_fecha_limite: 'Fecha límite',
+  meta_fecha_opcional: '(opcional)',
+  meta_seleccionar_fecha: 'Seleccionar fecha',
+  meta_guardar: 'Guardar',
+  meta_progreso: 'Progreso',
+  meta_ahorrado: 'ahorrado',
+  meta_objetivo: 'Meta',
+  meta_hasta: 'Hasta',
+  meta_crear: 'Crear meta de ahorro compartida…',
+  meta_error_actualizar: 'Error al actualizar la meta',
+  meta_error_crear: 'Error al crear la meta',
+  meta_exito_actualizar: 'Meta actualizada',
+  meta_exito_crear: 'Meta creada',
+  meta_requerido: 'Requerido',
+  meta_monto_invalido: 'Monto inválido',
+  meta_editar: 'Editar',
+
   // Language names
   lang_es: 'Español',
   lang_en: 'English',
+
 };
 
 export type TranslationKey = keyof typeof es;
@@ -271,6 +295,27 @@ const en: TranslationMap = {
   cat_Comida: 'Meals',
   cat_Otro: 'Other',
 
+  meta_titulo: 'Savings goal',
+  meta_nueva: 'New goal',
+  meta_actualizar: 'Update goal',
+  meta_titulo_label: 'Title',
+  meta_monto_objetivo: 'Target amount',
+  meta_fecha_limite: 'Deadline',
+  meta_fecha_opcional: '(optional)',
+  meta_seleccionar_fecha: 'Select date',
+  meta_guardar: 'Save',
+  meta_progreso: 'Progress',
+  meta_ahorrado: 'saved',
+  meta_objetivo: 'Goal',
+  meta_hasta: 'Until',
+  meta_crear: 'Create shared savings goal…',
+  meta_error_actualizar: 'Error updating goal',
+  meta_error_crear: 'Error creating goal',
+  meta_exito_actualizar: 'Goal updated',
+  meta_exito_crear: 'Goal created',
+  meta_requerido: 'Required',
+  meta_monto_invalido: 'Invalid amount',
+  meta_editar: 'Edit',
   lang_es: 'Español',
   lang_en: 'English',
 };
