@@ -135,6 +135,8 @@ export default function TransactionModal({ isOpen, onClose, onSuccess, defaultTy
             <div className="flex items-baseline justify-center gap-2">
               <span className="text-[20px] font-medium" style={{ color: 'var(--text-muted)' }}>S/</span>
               <input
+                  inputMode="decimal"
+                  pattern="[0-9]*"
                   type="number"
                   min="0.01"
                   step="0.01"
