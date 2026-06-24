@@ -52,16 +52,16 @@ export default function HeroCard({ ingresos, egresos, balance, loading }: HeroCa
     <div
       className="relative mx-4 mt-4 mb-1 rounded-[22px] p-5 overflow-hidden shimmer-border"
       style={{
-        background: 'linear-gradient(135deg, rgba(167,139,250,0.12) 0%, rgba(255,255,255,0.05) 50%, rgba(52,211,153,0.07) 100%)',
+        background: 'var(--hero-gradient)',
         backdropFilter: 'blur(40px) saturate(200%)',
         WebkitBackdropFilter: 'blur(40px) saturate(200%)',
-        border: '1px solid rgba(255,255,255,0.12)',
+        border: '1px solid var(--hero-border)',
       }}
     >
       {/* Ambient glow */}
       <div
         className="absolute -top-16 -right-16 w-48 h-48 rounded-full pointer-events-none"
-        style={{ background: 'radial-gradient(circle, rgba(167,139,250,0.15) 0%, transparent 70%)' }}
+        style={{ background: 'radial-gradient(circle, var(--accent-glow) 0%, transparent 70%)' }}
       />
 
       {/* Label — translated */}
@@ -79,14 +79,14 @@ export default function HeroCard({ ingresos, egresos, balance, loading }: HeroCa
         <div className="flex items-baseline gap-1 mb-4">
           {/* S/ is bold at ~45% of the number size for consistent weight relationship */}
           <span
-            className="font-bold tabular-nums"
-            style={{ fontSize: '18px', color: isPositive ? 'rgba(245,245,255,0.65)' : '#F87171' }}
+            className="font-bold tabular-nums tx-amount"
+            style={{ fontSize: '18px', color: isPositive ? 'var(--text-secondary)' : 'var(--color-egreso)' }}
           >
             S/
           </span>
           <span
-            className="font-bold leading-none tabular-nums"
-            style={{ fontSize: '40px', color: isPositive ? '#F5F5FF' : '#F87171', letterSpacing: '-0.02em' }}
+            className="font-bold leading-none tabular-nums tx-amount"
+            style={{ fontSize: '40px', color: isPositive ? 'var(--text-primary)' : 'var(--color-egreso)', letterSpacing: '-0.02em' }}
           >
             {formatBalanceRaw(animatedBalance)}
           </span>
@@ -97,20 +97,20 @@ export default function HeroCard({ ingresos, egresos, balance, loading }: HeroCa
       <div className="flex gap-2">
         <div
           className="flex items-center gap-1.5 rounded-full px-3 py-1.5"
-          style={{ background: 'rgba(52,211,153,0.12)', border: '1px solid rgba(52,211,153,0.20)' }}
+          style={{ background: 'var(--income-bg)', border: '1px solid var(--income-border)' }}
         >
-          <span className="text-[11px]" style={{ color: '#34D399' }}>↑</span>
-          <span className="text-[12px] font-semibold tabular-nums" style={{ color: '#34D399' }}>
+          <span className="text-[11px] tx-amount" style={{ color: 'var(--color-ingreso)' }}>↑</span>
+          <span className="text-[12px] font-semibold tabular-nums tx-amount" style={{ color: 'var(--color-ingreso)' }}>
             S/ {formatBalanceRaw(animatedIngresos)}
           </span>
         </div>
 
         <div
           className="flex items-center gap-1.5 rounded-full px-3 py-1.5"
-          style={{ background: 'rgba(248,113,113,0.12)', border: '1px solid rgba(248,113,113,0.20)' }}
+          style={{ background: 'var(--expense-bg)', border: '1px solid var(--expense-border)' }}
         >
-          <span className="text-[11px]" style={{ color: '#F87171' }}>↓</span>
-          <span className="text-[12px] font-semibold tabular-nums" style={{ color: '#F87171' }}>
+          <span className="text-[11px] tx-amount" style={{ color: 'var(--color-egreso)' }}>↓</span>
+          <span className="text-[12px] font-semibold tabular-nums tx-amount" style={{ color: 'var(--color-egreso)' }}>
             S/ {formatBalanceRaw(animatedEgresos)}
           </span>
         </div>

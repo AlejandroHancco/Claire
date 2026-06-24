@@ -17,44 +17,88 @@ html {
   --shimmer-clr: #A78BFA;
   --header-bg:   rgba(6, 6, 16, 0.80);
   --drop-bg:     rgba(18, 18, 32, 0.95);
-  /* Opaque surface for swipeable cards — must fully hide content behind them */
-  --card-surface: #1C1C2E;
+  /* Opaque card surfaces — must fully hide content behind them */
+  --card-surface:     #1C1C2E;
   --card-surface-own: #1F1A38;
+
+  /* ── Design tokens (overridden per theme below) ──────────── */
+  --accent:         #A78BFA;
+  --accent-hover:   #9061F9;
+  --accent-soft:    rgba(167, 139, 250, 0.12);
+  --accent-border:  rgba(167, 139, 250, 0.30);
+  --accent-glow:    rgba(167, 139, 250, 0.15);
+  --text-primary:   #F5F5FF;
+  --text-secondary: rgba(245, 245, 255, 0.55);
+  --text-muted:     rgba(245, 245, 255, 0.35);
+  --surface:        rgba(255, 255, 255, 0.05);
+  --surface-el:     rgba(255, 255, 255, 0.08);
+  --border:         rgba(255, 255, 255, 0.09);
+  --border-subtle:  rgba(255, 255, 255, 0.06);
+  /* Nav / FAB */
+  --nav-bg:       rgba(8, 8, 18, 0.88);
+  --nav-shadow:   0 -1px 0 rgba(255,255,255,0.07), 0 -8px 32px rgba(0,0,0,0.30);
+  --nav-active:   #A78BFA;
+  --nav-inactive: rgba(245, 245, 255, 0.32);
+  --fab-from:     #A78BFA;
+  --fab-to:       #818CF8;
+  --fab-shadow:   rgba(167, 139, 250, 0.50);
+  /* Hero card */
+  --hero-gradient: linear-gradient(135deg, rgba(167,139,250,0.12) 0%, rgba(255,255,255,0.05) 50%, rgba(52,211,153,0.07) 100%);
+  --hero-border:   rgba(255, 255, 255, 0.12);
+  /* Income / Expense pill backgrounds */
+  --income-bg:      rgba(52, 211, 153, 0.12);
+  --income-border:  rgba(52, 211, 153, 0.20);
+  --expense-bg:     rgba(248, 113, 113, 0.12);
+  --expense-border: rgba(248, 113, 113, 0.20);
 }
 
 html.pink {
-  /* ── Light pink palette (user-defined) ───────────────────── */
-  --background:           #F9D0E0;
-  --background-secondary: #F5B8CE;
-  --surface:              #FDE8F2;
-  --surface-secondary:    #F9D0E0;
-  --border:               #E8789A;
-  --border-secondary:     #FFCCD8;
-  --accent:               #E91E8C;
-  --accent-hover:         #C2186F;
-  --text-primary:         #1A0010;
-  --text-secondary:       #4A1528;
-  --text-muted:           #7A3550;
-  --ingreso:              #00A878;
-  --egreso:               #E91E8C;
-  --color-ingreso:        #007A5E;
-  --color-egreso:         #B0003A;
-  --glass:                rgba(255, 255, 255, 0.85);
-  --glass-border:         rgba(255, 180, 210, 0.4);
-
-  /* ── Map to internal names used by utility classes ──────── */
-  --app-bg:      #F9D0E0;
-  --glass-bg:    rgba(253, 232, 242, 0.88);
-  --glass-bg-s:  rgba(253, 232, 242, 0.95);
-  --glass-bd:    rgba(232, 120, 154, 0.45);
-  --glass-bd-s:  rgba(232, 120, 154, 0.65);
-  --sheet-bg:    rgba(249, 208, 224, 0.98);
-  --frame-bd:    #E8789A;
-  --shimmer-clr: #E91E8C;
-  --header-bg:   rgba(253, 232, 242, 0.90);
-  --drop-bg:     rgba(249, 215, 232, 0.98);
-  --card-surface: #F3C8DC;
-  --card-surface-own: #EDB5CC;
+  /* ── Pink theme — cohesive rose palette ──────────────────── */
+  --app-bg:      #FDE4EF;
+  --color-ingreso: #00936B;
+  --color-egreso:  #D13A78;
+  /* Opaque card surfaces — white on pink background */
+  --card-surface:     #FFFFFF;
+  --card-surface-own: #FFF0F6;
+  /* Design tokens */
+  --accent:         #E84A8A;
+  --accent-hover:   #D13A78;
+  --accent-soft:    rgba(232, 74, 138, 0.10);
+  --accent-border:  rgba(232, 74, 138, 0.28);
+  --accent-glow:    rgba(232, 74, 138, 0.12);
+  --text-primary:   #2A0E1C;
+  --text-secondary: #7A4458;
+  --text-muted:     #A87088;
+  --surface:        #FFFFFF;
+  --surface-el:     #FFF5FA;
+  --border:         #F0A8C8;
+  --border-subtle:  #F8D0E0;
+  /* Nav / FAB */
+  --nav-bg:       rgba(255, 245, 250, 0.97);
+  --nav-shadow:   0 -1px 0 #F0A8C8, 0 -4px 20px rgba(180, 60, 100, 0.07);
+  --nav-active:   #E84A8A;
+  --nav-inactive: #A87088;
+  --fab-from:     #E84A8A;
+  --fab-to:       #F06AA8;
+  --fab-shadow:   rgba(232, 74, 138, 0.38);
+  /* Hero card */
+  --hero-gradient: linear-gradient(135deg, rgba(232,74,138,0.07) 0%, rgba(255,255,255,0.70) 50%, rgba(0,147,107,0.05) 100%);
+  --hero-border:   rgba(240, 168, 200, 0.55);
+  /* Income / Expense pill backgrounds — contrast-safe on pink */
+  --income-bg:      rgba(0, 147, 107, 0.10);
+  --income-border:  rgba(0, 147, 107, 0.22);
+  --expense-bg:     rgba(209, 58, 120, 0.09);
+  --expense-border: rgba(209, 58, 120, 0.22);
+  /* Glass utilities */
+  --glass-bg:    rgba(255, 255, 255, 0.82);
+  --glass-bg-s:  rgba(255, 255, 255, 0.95);
+  --glass-bd:    rgba(240, 168, 200, 0.45);
+  --glass-bd-s:  rgba(240, 168, 200, 0.65);
+  --sheet-bg:    rgba(255, 245, 250, 0.98);
+  --frame-bd:    #F0A8C8;
+  --shimmer-clr: #E84A8A;
+  --header-bg:   rgba(255, 245, 250, 0.92);
+  --drop-bg:     rgba(253, 228, 239, 0.98);
 }
 
 /* ── Reset & base ─────────────────────────────────────────────── */
@@ -184,21 +228,27 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   cursor: pointer;
 }
 
-/* ── Pink theme: force dark text on all text elements ────────── */
-/* !important is required because components use inline style colors.
-   .tx-amount is excluded so transaction amounts keep their themed color. */
+/* ── Pink theme: force readable text on all text elements ────── */
+/* !important overrides inline styles. Excludes .tx-amount (keeps semantic colors). */
 html.pink h1, html.pink h2, html.pink h3,
 html.pink h4, html.pink h5, html.pink h6 { color: var(--text-primary) !important; }
 
-html.pink p                               { color: var(--text-primary) !important; }
-html.pink label                           { color: var(--text-primary) !important; }
-html.pink span:not(.tx-amount)            { color: var(--text-primary) !important; }
+html.pink p                    { color: var(--text-secondary) !important; }
+html.pink label                { color: var(--text-secondary) !important; }
+html.pink span:not(.tx-amount) { color: var(--text-secondary) !important; }
+
+/* Headings inside card headers should be primary weight */
+html.pink h2, html.pink h3    { color: var(--text-primary) !important; }
+
+/* Override: interactive accent elements keep their colors */
+html.pink .accent-text         { color: var(--accent) !important; }
+html.pink .muted-text          { color: var(--text-muted) !important; }
 
 /* Header SVG icons */
-html.pink header svg                      { color: var(--text-secondary) !important; }
+html.pink header svg           { color: var(--text-secondary) !important; }
 
-/* Amount spans use their own CSS-variable color (set via TransactionsTable) */
-html.pink .tx-amount                      { color: inherit; }
+/* Amount spans use semantic color variable */
+html.pink .tx-amount           { color: inherit; }
 
 /* Placeholder text */
 html.pink input::placeholder,

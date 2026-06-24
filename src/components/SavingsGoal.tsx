@@ -126,7 +126,7 @@ function GoalSheet({ isOpen, onClose, onSave, initial }: GoalSheetProps) {
           onClick={handleSave}
           disabled={saving}
           className="w-full h-[52px] rounded-full text-[15px] font-semibold text-white press flex items-center justify-center gap-2"
-          style={{ background: saving ? 'rgba(167,139,250,0.50)' : '#A78BFA' }}
+          style={{ background: saving ? 'var(--accent-soft)' : 'var(--accent)' }}
         >
           {saving ? (
             <>
@@ -211,8 +211,8 @@ export default function SavingsGoal({ userId, monthBalance }: SavingsGoalProps) 
           }}
         >
           <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
-            style={{ background: 'rgba(167,139,250,0.12)', border: '1px solid rgba(167,139,250,0.25)' }}>
-            <span style={{ color: '#A78BFA', fontSize: 16 }}>◎</span>
+            style={{ background: 'var(--accent-soft)', border: '1px solid var(--accent-border)' }}>
+            <span style={{ color: 'var(--accent)', fontSize: 16 }}>◎</span>
           </div>
           <span className="text-[14px]" style={{ color: 'rgba(245,245,255,0.35)' }}>
             Crear meta de ahorro compartida…
@@ -228,15 +228,17 @@ export default function SavingsGoal({ userId, monthBalance }: SavingsGoalProps) 
   const target = Number(goal.target_amount);
   const percentage = target > 0 ? (current / target) * 100 : 0;
   const isComplete = percentage >= 100;
-  const barColor = isComplete ? '#34D399' : percentage >= 50 ? '#A78BFA' : '#F59E0B';
+  const barGradient = isComplete
+    ? 'linear-gradient(90deg, var(--color-ingreso), var(--color-ingreso))'
+    : 'linear-gradient(90deg, var(--accent), var(--accent-border))';
 
   return (
     <>
       <div
         className="mx-4 rounded-2xl px-4 py-3.5 space-y-2.5"
         style={{
-          background: 'rgba(255,255,255,0.05)',
-          border: '1px solid rgba(255,255,255,0.09)',
+          background: 'var(--surface)',
+          border: '1px solid var(--border)',
         }}
       >
         {/* Header row */}
@@ -256,9 +258,9 @@ export default function SavingsGoal({ userId, monthBalance }: SavingsGoalProps) 
             onClick={() => setEditOpen(true)}
             className="px-3 py-1.5 rounded-full text-[12px] font-medium press flex-shrink-0"
             style={{
-              background: 'rgba(255,255,255,0.05)',
-              border: '1px solid rgba(255,255,255,0.09)',
-              color: 'rgba(245,245,255,0.45)',
+              background: 'var(--surface)',
+              border: '1px solid var(--border)',
+              color: 'var(--text-muted)',
             }}
           >
             Editar
@@ -270,15 +272,15 @@ export default function SavingsGoal({ userId, monthBalance }: SavingsGoalProps) 
           <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.08)' }}>
             <div
               className="h-full rounded-full"
-              style={{ width: `${Math.min(100, percentage)}%`, background: barColor, transition: 'width 700ms ease' }}
+              style={{ width: `${Math.min(100, percentage)}%`, background: barGradient, transition: 'width 700ms ease' }}
             />
           </div>
           <div className="flex justify-between mt-1">
-            <span className="text-[11px] font-medium" style={{ color: barColor }}>
+            <span className="text-[11px] font-medium tx-amount" style={{ color: isComplete ? 'var(--color-ingreso)' : 'var(--accent)' }}>
               {Math.min(100, percentage).toFixed(0)}%
             </span>
             {isComplete && (
-              <span className="text-[11px] font-medium" style={{ color: '#34D399' }}>
+              <span className="text-[11px] font-medium tx-amount" style={{ color: 'var(--color-ingreso)' }}>
                 {t('meta_alcanzada')}
               </span>
             )}

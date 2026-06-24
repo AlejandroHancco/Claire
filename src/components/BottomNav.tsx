@@ -80,11 +80,11 @@ export default function BottomNav({ activeTab, onChange, onAdd }: BottomNavProps
         left: 'max(0px, calc(50vw - 195px))',
         width: 'min(390px, 100vw)',
         height: 'calc(68px + env(safe-area-inset-bottom))',
-        background: 'rgba(8,8,18,0.88)',
+        background: 'var(--nav-bg)',
         backdropFilter: 'blur(24px) saturate(180%)',
         WebkitBackdropFilter: 'blur(24px) saturate(180%)',
         paddingBottom: 'calc(env(safe-area-inset-bottom) + 12px)',
-        boxShadow: '0 -1px 0 rgba(255,255,255,0.07), 0 -8px 32px rgba(0,0,0,0.30)',
+        boxShadow: 'var(--nav-shadow)',
       }}
     >
       {/* Left tabs */}
@@ -95,10 +95,10 @@ export default function BottomNav({ activeTab, onChange, onAdd }: BottomNavProps
             key={tab.key}
             onClick={() => onChange(tab.key)}
             className="flex-1 flex flex-col items-center justify-center gap-1 press"
-            style={{ color: active ? '#A78BFA' : 'rgba(245,245,255,0.32)', transition: 'color 180ms ease' }}
+            style={{ color: active ? 'var(--nav-active)' : 'var(--nav-inactive)', transition: 'color 180ms ease' }}
           >
             <tab.icon active={active} />
-            <span className="text-[10px] font-medium">{t(tab.labelKey)}</span>
+            <span className="text-[10px] font-medium" style={{ color: active ? 'var(--nav-active)' : 'var(--nav-inactive)' }}>{t(tab.labelKey)}</span>
           </button>
         );
       })}
@@ -111,8 +111,8 @@ export default function BottomNav({ activeTab, onChange, onAdd }: BottomNavProps
           style={{
             width: 52,
             height: 52,
-            background: 'linear-gradient(135deg, #A78BFA 0%, #818CF8 100%)',
-            boxShadow: '0 4px 20px rgba(167,139,250,0.50)',
+            background: 'linear-gradient(135deg, var(--fab-from) 0%, var(--fab-to) 100%)',
+            boxShadow: '0 4px 20px var(--fab-shadow)',
             marginTop: '-28px',
           }}
           aria-label="Nueva transacción"
@@ -131,10 +131,10 @@ export default function BottomNav({ activeTab, onChange, onAdd }: BottomNavProps
             key={tab.key}
             onClick={() => onChange(tab.key)}
             className="flex-1 flex flex-col items-center justify-center gap-1 press"
-            style={{ color: active ? '#A78BFA' : 'rgba(245,245,255,0.32)', transition: 'color 180ms ease' }}
+            style={{ color: active ? 'var(--nav-active)' : 'var(--nav-inactive)', transition: 'color 180ms ease' }}
           >
             <tab.icon active={active} />
-            <span className="text-[10px] font-medium">{t(tab.labelKey)}</span>
+            <span className="text-[10px] font-medium" style={{ color: active ? 'var(--nav-active)' : 'var(--nav-inactive)' }}>{t(tab.labelKey)}</span>
           </button>
         );
       })}

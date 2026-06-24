@@ -28,33 +28,33 @@ export default function KPICards({ transactions, savingsGoal }: KPICardsProps) {
       key: 'count',
       label: `${count} movimiento${count !== 1 ? 's' : ''}`,
       icon: '≡',
-      color: 'rgba(167,139,250,0.85)',
-      bg: 'rgba(167,139,250,0.10)',
-      border: 'rgba(167,139,250,0.18)',
+      color: 'var(--accent)',
+      bg: 'var(--accent-soft)',
+      border: 'var(--accent-border)',
     },
     {
       key: 'ingresos',
       label: formatCurrency(totalIngresos),
       icon: '↑',
-      color: '#34D399',
-      bg: 'rgba(52,211,153,0.10)',
-      border: 'rgba(52,211,153,0.18)',
+      color: 'var(--color-ingreso)',
+      bg: 'var(--income-bg)',
+      border: 'var(--income-border)',
     },
     {
       key: 'egresos',
       label: formatCurrency(totalEgresos),
       icon: '↓',
-      color: '#F87171',
-      bg: 'rgba(248,113,113,0.10)',
-      border: 'rgba(248,113,113,0.18)',
+      color: 'var(--color-egreso)',
+      bg: 'var(--expense-bg)',
+      border: 'var(--expense-border)',
     },
     ...(savingsPct !== null ? [{
       key: 'savings',
       label: `${savingsPct}% meta`,
       icon: '◎',
-      color: savingsPct >= 100 ? '#34D399' : 'rgba(167,139,250,0.85)',
-      bg: savingsPct >= 100 ? 'rgba(52,211,153,0.10)' : 'rgba(167,139,250,0.10)',
-      border: savingsPct >= 100 ? 'rgba(52,211,153,0.18)' : 'rgba(167,139,250,0.18)',
+      color: savingsPct >= 100 ? 'var(--color-ingreso)' : 'var(--accent)',
+      bg: savingsPct >= 100 ? 'var(--income-bg)' : 'var(--accent-soft)',
+      border: savingsPct >= 100 ? 'var(--income-border)' : 'var(--accent-border)',
     }] : []),
   ];
 
@@ -66,8 +66,8 @@ export default function KPICards({ transactions, savingsGoal }: KPICardsProps) {
           className="flex-shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-full"
           style={{ background: chip.bg, border: `1px solid ${chip.border}` }}
         >
-          <span className="text-[13px] leading-none" style={{ color: chip.color }}>{chip.icon}</span>
-          <span className="text-[13px] font-medium whitespace-nowrap" style={{ color: chip.color }}>
+          <span className="text-[13px] leading-none tx-amount" style={{ color: chip.color }}>{chip.icon}</span>
+          <span className="text-[13px] font-medium whitespace-nowrap tx-amount" style={{ color: chip.color }}>
             {chip.label}
           </span>
         </div>

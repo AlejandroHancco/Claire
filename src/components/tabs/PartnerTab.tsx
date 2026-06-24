@@ -45,13 +45,13 @@ function ProfileCard({ profile, stats, isMe, labels }: {
     <div
       className="rounded-2xl p-4 space-y-3"
       style={{
-        background: isMe ? 'rgba(167,139,250,0.07)' : 'rgba(255,255,255,0.05)',
-        border: `1px solid ${isMe ? 'rgba(167,139,250,0.20)' : 'rgba(255,255,255,0.09)'}`,
+        background: isMe ? 'var(--accent-soft)' : 'var(--surface)',
+        border: `1px solid ${isMe ? 'var(--accent-border)' : 'var(--border)'}`,
       }}
     >
       {/* Avatar + name */}
       <div className="flex flex-col items-center gap-2 pb-2"
-        style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+        style={{ borderBottom: '1px solid var(--border-subtle)' }}>
         {profile.avatar_url ? (
           <img
             src={profile.avatar_url}
@@ -78,7 +78,7 @@ function ProfileCard({ profile, stats, isMe, labels }: {
           {/* Always render the badge slot so both card headers are the same height */}
           {isMe ? (
             <span className="inline-block text-[10px] px-2 py-0.5 rounded-full"
-              style={{ background: 'rgba(167,139,250,0.15)', color: '#A78BFA' }}>
+              style={{ background: 'var(--accent-soft)', color: 'var(--accent)' }}>
               {labels.yo}
             </span>
           ) : (
@@ -98,14 +98,14 @@ function ProfileCard({ profile, stats, isMe, labels }: {
         </div>
         <div className="flex justify-between items-center">
           <span className="text-[12px]" style={{ color: 'rgba(245,245,255,0.40)' }}>{labels.ingresos}</span>
-          <span className="text-[13px] font-semibold tabular-nums" style={{ color: '#34D399' }}>{formatCurrency(stats.ingreso)}</span>
+          <span className="text-[13px] font-semibold tabular-nums tx-amount" style={{ color: 'var(--color-ingreso)' }}>{formatCurrency(stats.ingreso)}</span>
         </div>
         <div className="flex justify-between items-center">
-          <span className="text-[12px]" style={{ color: 'rgba(245,245,255,0.40)' }}>{labels.egresos}</span>
-          <span className="text-[13px] font-semibold tabular-nums" style={{ color: '#F87171' }}>{formatCurrency(stats.egreso)}</span>
+          <span className="text-[12px]" style={{ color: 'var(--text-muted)' }}>{labels.egresos}</span>
+          <span className="text-[13px] font-semibold tabular-nums tx-amount" style={{ color: 'var(--color-egreso)' }}>{formatCurrency(stats.egreso)}</span>
         </div>
         <div className="flex justify-between items-center pt-2 mt-1"
-          style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+          style={{ borderTop: '1px solid var(--border-subtle)' }}>
           <span className="text-[12px] font-medium" style={{ color: 'rgba(245,245,255,0.55)' }}>{labels.balance}</span>
           <span className="text-[14px] font-bold tabular-nums"
             style={{ color: balancePositive ? '#F5F5FF' : '#F87171' }}>
@@ -174,20 +174,20 @@ export default function PartnerTab({ profiles, transactions, userId }: PartnerTa
       {/* Combined totals */}
       <div
         className="rounded-2xl px-4 py-4 space-y-3"
-        style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)' }}
+        style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
       >
         <p className="text-[11px] font-medium uppercase tracking-widest"
           style={{ color: 'rgba(245,245,255,0.35)' }}>{t('partner_combinados')}</p>
         <div className="flex gap-3">
           <div className="flex-1 text-center py-2 rounded-xl"
-            style={{ background: 'rgba(52,211,153,0.08)', border: '1px solid rgba(52,211,153,0.15)' }}>
-            <p className="text-[11px]" style={{ color: '#34D399' }}>↑ {t('partner_ingresos')}</p>
-            <p className="text-[14px] font-bold mt-0.5" style={{ color: '#34D399' }}>{formatCurrency(totalIngreso)}</p>
+            style={{ background: 'var(--income-bg)', border: '1px solid var(--income-border)' }}>
+            <p className="text-[11px] tx-amount" style={{ color: 'var(--color-ingreso)' }}>↑ {t('partner_ingresos')}</p>
+            <p className="text-[14px] font-bold mt-0.5 tx-amount" style={{ color: 'var(--color-ingreso)' }}>{formatCurrency(totalIngreso)}</p>
           </div>
           <div className="flex-1 text-center py-2 rounded-xl"
-            style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.15)' }}>
-            <p className="text-[11px]" style={{ color: '#F87171' }}>↓ {t('partner_egresos')}</p>
-            <p className="text-[14px] font-bold mt-0.5" style={{ color: '#F87171' }}>{formatCurrency(totalEgreso)}</p>
+            style={{ background: 'var(--expense-bg)', border: '1px solid var(--expense-border)' }}>
+            <p className="text-[11px] tx-amount" style={{ color: 'var(--color-egreso)' }}>↓ {t('partner_egresos')}</p>
+            <p className="text-[14px] font-bold mt-0.5 tx-amount" style={{ color: 'var(--color-egreso)' }}>{formatCurrency(totalEgreso)}</p>
           </div>
         </div>
       </div>

@@ -54,7 +54,7 @@ export default function FiltersBar({ isOpen, onClose, transactions, filters, onC
             {(['All', 'Ingreso', 'Egreso'] as const).map(tp => {
               const label = tp === 'All' ? t('filtros_todos') : (tp === 'Ingreso' ? t('tipo_ingreso') : t('tipo_egreso'));
               const active = filters.type === tp;
-              const ac = tp === 'Ingreso' ? '#34D399' : tp === 'Egreso' ? '#F87171' : '#A78BFA';
+              const ac = tp === 'Ingreso' ? 'var(--color-ingreso)' : tp === 'Egreso' ? 'var(--color-egreso)' : 'var(--accent)';
               return (
                 <button
                   key={tp}
@@ -87,9 +87,9 @@ export default function FiltersBar({ isOpen, onClose, transactions, filters, onC
                   onClick={() => update({ category: cat })}
                   className="px-3 py-1.5 rounded-full text-[13px] font-medium press transition-all"
                   style={{
-                    background: active ? 'rgba(167,139,250,0.18)' : 'rgba(255,255,255,0.05)',
-                    border: `1px solid ${active ? 'rgba(167,139,250,0.35)' : 'rgba(255,255,255,0.09)'}`,
-                    color: active ? '#A78BFA' : 'rgba(245,245,255,0.50)',
+                    background: active ? 'var(--accent-soft)' : 'var(--surface)',
+                    border: `1px solid ${active ? 'var(--accent-border)' : 'var(--border)'}`,
+                    color: active ? 'var(--accent)' : 'var(--text-muted)',
                   }}
                 >
                   {label}
@@ -114,9 +114,9 @@ export default function FiltersBar({ isOpen, onClose, transactions, filters, onC
                     onClick={() => update({ responsible: r })}
                     className="px-3 py-1.5 rounded-full text-[13px] font-medium press transition-all"
                     style={{
-                      background: active ? 'rgba(167,139,250,0.18)' : 'rgba(255,255,255,0.05)',
-                      border: `1px solid ${active ? 'rgba(167,139,250,0.35)' : 'rgba(255,255,255,0.09)'}`,
-                      color: active ? '#A78BFA' : 'rgba(245,245,255,0.50)',
+                      background: active ? 'var(--accent-soft)' : 'var(--surface)',
+                      border: `1px solid ${active ? 'var(--accent-border)' : 'var(--border)'}`,
+                      color: active ? 'var(--accent)' : 'var(--text-muted)',
                     }}
                   >
                     {label}
@@ -140,12 +140,12 @@ export default function FiltersBar({ isOpen, onClose, transactions, filters, onC
                 <div
                   className="flex flex-col gap-1 px-3 py-2.5 rounded-xl"
                   style={{
-                    background: value ? 'rgba(167,139,250,0.10)' : 'rgba(255,255,255,0.05)',
-                    border: `1px solid ${value ? 'rgba(167,139,250,0.25)' : 'rgba(255,255,255,0.09)'}`,
+                    background: value ? 'var(--accent-soft)' : 'var(--surface)',
+                    border: `1px solid ${value ? 'var(--accent-border)' : 'var(--border)'}`,
                   }}
                 >
                   <span className="text-[11px]" style={{ color: 'rgba(245,245,255,0.35)' }}>{label}</span>
-                  <span className="text-[13px] font-medium" style={{ color: value ? '#A78BFA' : 'rgba(245,245,255,0.35)' }}>
+                  <span className="text-[13px] font-medium tx-amount" style={{ color: value ? 'var(--accent)' : 'var(--text-muted)' }}>
                     {value ? formatDate(value) : t('filtros_seleccionar')}
                   </span>
                 </div>
@@ -179,7 +179,7 @@ export default function FiltersBar({ isOpen, onClose, transactions, filters, onC
         <button
           onClick={onClose}
           className="w-full h-[52px] rounded-full text-[15px] font-semibold text-white press"
-          style={{ background: '#A78BFA' }}
+          style={{ background: 'var(--accent)', color: '#fff' }}
         >
           {t('filtros_aplicar')}
         </button>

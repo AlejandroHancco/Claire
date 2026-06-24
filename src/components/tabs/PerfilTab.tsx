@@ -214,7 +214,7 @@ export default function PerfilTab({ userId, userEmail, currentProfile, onProfile
               onClick={() => fileInputRef.current?.click()}
               disabled={uploading}
               className="absolute bottom-0 right-0 w-7 h-7 rounded-full flex items-center justify-center press"
-              style={{ background: '#A78BFA', border: '2px solid var(--app-bg, #060610)' }}
+              style={{ background: 'var(--accent)', border: '2px solid var(--app-bg, #060610)' }}
               aria-label={t('perfil_cambiar_foto')}
             >
               {uploading ? (
@@ -245,7 +245,7 @@ export default function PerfilTab({ userId, userEmail, currentProfile, onProfile
 
         {/* ── Display name ───────────────────────────────────────── */}
         <div className="rounded-2xl overflow-hidden"
-          style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)' }}>
+          style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
           <div className="px-4 pt-3 pb-1">
             <p className="text-[11px] font-medium uppercase tracking-widest"
               style={{ color: 'rgba(245,245,255,0.35)' }}>
@@ -271,7 +271,7 @@ export default function PerfilTab({ userId, userEmail, currentProfile, onProfile
                 onClick={handleSaveName}
                 disabled={nameSaving}
                 className="flex items-center gap-1 px-3 py-1.5 rounded-full text-[12px] font-semibold press flex-shrink-0"
-                style={{ background: 'rgba(167,139,250,0.18)', color: '#A78BFA' }}
+                style={{ background: 'var(--accent-soft)', color: 'var(--accent)' }}
               >
                 {nameSaving ? (
                   <svg className="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24">
@@ -291,8 +291,8 @@ export default function PerfilTab({ userId, userEmail, currentProfile, onProfile
 
         {/* ── Preferences ────────────────────────────────────────── */}
         <div className="rounded-2xl overflow-hidden"
-          style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)' }}>
-          <div className="px-4 pt-3 pb-2.5" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+          style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+          <div className="px-4 pt-3 pb-2.5" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
             <p className="text-[11px] font-medium uppercase tracking-widest"
               style={{ color: 'rgba(245,245,255,0.35)' }}>
               {t('perfil_preferencias')}
@@ -301,15 +301,15 @@ export default function PerfilTab({ userId, userEmail, currentProfile, onProfile
 
           {/* Theme row */}
           <div className="flex items-center justify-between px-4 py-3.5"
-            style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+            style={{ borderBottom: '1px solid var(--border-subtle)' }}>
             <p className="text-[14px] font-medium" style={{ color: '#F5F5FF' }}>{t('perfil_tema')}</p>
-            <div className="flex gap-0.5 p-1 rounded-full" style={{ background: 'rgba(255,255,255,0.08)' }}>
+            <div className="flex gap-0.5 p-1 rounded-full" style={{ background: 'var(--surface-el)' }}>
               <button
                 onClick={() => handleThemeToggle('dark')}
                 className="px-3 py-1 rounded-full text-[12px] font-semibold press transition-all"
                 style={{
-                  background: theme === 'dark' ? '#A78BFA' : 'transparent',
-                  color: theme === 'dark' ? '#fff' : 'rgba(245,245,255,0.45)',
+                  background: theme === 'dark' ? 'var(--accent)' : 'transparent',
+                  color: theme === 'dark' ? '#fff' : 'var(--text-muted)',
                 }}
               >
                 🌙 {t('tema_oscuro')}
@@ -318,8 +318,8 @@ export default function PerfilTab({ userId, userEmail, currentProfile, onProfile
                 onClick={() => handleThemeToggle('pink')}
                 className="px-3 py-1 rounded-full text-[12px] font-semibold press transition-all"
                 style={{
-                  background: theme === 'pink' ? '#E91E8C' : 'transparent',
-                  color: theme === 'pink' ? '#fff' : 'rgba(245,245,255,0.45)',
+                  background: theme === 'pink' ? 'var(--accent)' : 'transparent',
+                  color: theme === 'pink' ? '#fff' : 'var(--text-muted)',
                 }}
               >
                 🌸 {t('tema_rosa')}
@@ -330,15 +330,15 @@ export default function PerfilTab({ userId, userEmail, currentProfile, onProfile
           {/* Language row */}
           <div className="flex items-center justify-between px-4 py-3.5">
             <p className="text-[14px] font-medium" style={{ color: '#F5F5FF' }}>{t('perfil_idioma')}</p>
-            <div className="flex gap-0.5 p-1 rounded-full" style={{ background: 'rgba(255,255,255,0.08)' }}>
+            <div className="flex gap-0.5 p-1 rounded-full" style={{ background: 'var(--surface-el)' }}>
               {(['es', 'en'] as const).map(l => (
                 <button
                   key={l}
                   onClick={() => handleLangChange(l)}
                   className="px-3 py-1 rounded-full text-[12px] font-semibold press transition-all"
                   style={{
-                    background: lang === l ? '#A78BFA' : 'transparent',
-                    color: lang === l ? '#fff' : 'rgba(245,245,255,0.45)',
+                    background: lang === l ? 'var(--accent)' : 'transparent',
+                    color: lang === l ? '#fff' : 'var(--text-muted)',
                   }}
                 >
                   {l === 'es' ? 'ES' : 'EN'}

@@ -202,10 +202,10 @@ export default function EstadisticasTab({
   }, [transactions, histFilters]);
 
   // ── Shared chip style helper ───────────────────────────────────────────────
-  const chip = (active: boolean, accent = '#A78BFA') => ({
-    background: active ? `${accent}1A` : 'rgba(255,255,255,0.05)',
-    border: `1px solid ${active ? `${accent}40` : 'rgba(255,255,255,0.09)'}`,
-    color: active ? accent : 'rgba(245,245,255,0.50)',
+  const chip = (active: boolean, accentVar = 'var(--accent)') => ({
+    background: active ? 'var(--accent-soft)' : 'var(--surface)',
+    border: `1px solid ${active ? 'var(--accent-border)' : 'var(--border)'}`,
+    color: active ? accentVar : 'var(--text-muted)',
   });
 
   return (
@@ -225,9 +225,9 @@ export default function EstadisticasTab({
               onClick={() => setRange(r.key)}
               className="px-3 py-1.5 rounded-full text-[13px] font-medium press transition-all"
               style={{
-                background: active ? '#A78BFA' : 'rgba(255,255,255,0.07)',
-                border: `1px solid ${active ? '#A78BFA' : 'rgba(255,255,255,0.10)'}`,
-                color: active ? '#fff' : 'rgba(245,245,255,0.55)',
+                background: active ? 'var(--accent)' : 'var(--surface)',
+                border: `1px solid ${active ? 'var(--accent)' : 'var(--border)'}`,
+                color: active ? '#fff' : 'var(--text-muted)',
               }}
             >
               {r.label}
@@ -326,16 +326,16 @@ export default function EstadisticasTab({
             onClick={() => setHistoryOpen(true)}
             className="w-full py-3.5 rounded-2xl text-[14px] font-semibold press flex items-center justify-center gap-2"
             style={{
-              background: 'rgba(167,139,250,0.08)',
-              border: '1px solid rgba(167,139,250,0.18)',
-              color: '#A78BFA',
+              background: 'var(--accent-soft)',
+              border: '1px solid var(--accent-border)',
+              color: 'var(--accent)',
             }}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
             </svg>
             {t('stats_ver_todas')}
-            <span className="text-[12px] font-medium" style={{ color: 'rgba(167,139,250,0.55)' }}>
+            <span className="text-[12px] font-medium tx-amount" style={{ color: 'var(--accent)' }}>
               · {transactions.length}
             </span>
           </button>
@@ -348,23 +348,23 @@ export default function EstadisticasTab({
 
           {/* Sheet header */}
           <div className="flex items-start justify-between px-4 pb-4 mb-1"
-            style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+            style={{ borderBottom: '1px solid var(--border-subtle)' }}>
             <div>
               <p className="text-[17px] font-semibold" style={{ color: '#F5F5FF' }}>
                 {t('stats_historial')}
               </p>
               <p className="text-[13px] mt-0.5" style={{ color: 'rgba(245,245,255,0.40)' }}>
                 {historyFiltered.length} {historyFiltered.length === 1 ? t('inicio_registro') : t('inicio_registros')}
-                {histHasActive && <span style={{ color: '#A78BFA' }}> · {t('inicio_filtros_activos')}</span>}
+                {histHasActive && <span className="tx-amount" style={{ color: 'var(--accent)' }}> · {t('inicio_filtros_activos')}</span>}
               </p>
             </div>
             <button
               onClick={() => setHistoryOpen(false)}
               className="w-8 h-8 rounded-full flex items-center justify-center press flex-shrink-0"
-              style={{ background: 'rgba(255,255,255,0.07)' }}
+              style={{ background: 'var(--surface-el)' }}
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                style={{ color: 'rgba(245,245,255,0.60)' }}>
+                style={{ color: 'var(--text-muted)' }}>
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
@@ -375,13 +375,16 @@ export default function EstadisticasTab({
 
             {/* Tipo */}
             <div className="flex gap-1.5">
-              {([['All', t('filtros_todos'), '#A78BFA'], ['Ingreso', t('tipo_ingreso'), '#34D399'], ['Egreso', t('tipo_egreso'), '#F87171']] as const).map(
-                ([tp, label, accent]) => (
+              {([
+                ['All', t('filtros_todos'), 'var(--accent)'],
+                ['Ingreso', t('tipo_ingreso'), 'var(--color-ingreso)'],
+                ['Egreso', t('tipo_egreso'), 'var(--color-egreso)'],
+              ] as const).map(([tp, label, accentVar]) => (
                   <button
                     key={tp}
                     onClick={() => updateHistFilter({ type: tp as TransactionFilters['type'] })}
                     className="flex-1 py-2 rounded-full text-[13px] font-medium press transition-all"
-                    style={chip(histFilters.type === tp, accent)}
+                    style={chip(histFilters.type === tp, accentVar)}
                   >
                     {label}
                   </button>
@@ -435,12 +438,12 @@ export default function EstadisticasTab({
                   <div
                     className="flex flex-col gap-0.5 px-3 py-2.5 rounded-xl"
                     style={{
-                      background: value ? 'rgba(167,139,250,0.10)' : 'rgba(255,255,255,0.05)',
-                      border: `1px solid ${value ? 'rgba(167,139,250,0.25)' : 'rgba(255,255,255,0.09)'}`,
+                      background: value ? 'var(--accent-soft)' : 'var(--surface)',
+                      border: `1px solid ${value ? 'var(--accent-border)' : 'var(--border)'}`,
                     }}
                   >
-                    <span className="text-[10px]" style={{ color: 'rgba(245,245,255,0.35)' }}>{label}</span>
-                    <span className="text-[12px] font-medium" style={{ color: value ? '#A78BFA' : 'rgba(245,245,255,0.35)' }}>
+                    <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{label}</span>
+                    <span className="text-[12px] font-medium tx-amount" style={{ color: value ? 'var(--accent)' : 'var(--text-muted)' }}>
                       {value ? formatDate(value) : t('filtros_seleccionar')}
                     </span>
                   </div>
@@ -488,15 +491,15 @@ export default function EstadisticasTab({
                 const isOwn = tx.user_id === userId;
                 const isIngreso = tx.type === 'Ingreso';
                 const amountColor = isIngreso ? 'var(--color-ingreso)' : 'var(--color-egreso)';
-                const dotBg = isIngreso ? 'rgba(52,211,153,0.15)' : 'rgba(248,113,113,0.15)';
+                const dotBg = isIngreso ? 'var(--income-bg)' : 'var(--expense-bg)';
                 return (
                   <div
                     key={tx.id}
                     className="flex items-center gap-3 px-3 py-3 rounded-2xl"
                     style={{
                       background: isOwn ? 'var(--card-surface-own)' : 'var(--card-surface)',
-                      border: '1px solid rgba(255,255,255,0.08)',
-                      ...(isOwn ? { borderLeft: '3px solid rgba(167,139,250,0.35)' } : {}),
+                      border: '1px solid var(--border)',
+                      ...(isOwn ? { borderLeft: '3px solid var(--accent-border)' } : {}),
                     }}
                   >
                     <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 text-[15px]"

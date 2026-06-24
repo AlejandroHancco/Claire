@@ -125,7 +125,7 @@ export default function InicioTab({
       <MonthlyNote userId={userId} profiles={profiles} />
 
       {/* Divider */}
-      <div className="h-px mx-4" style={{ background: 'rgba(255,255,255,0.06)' }} />
+      <div className="h-px mx-4" style={{ background: 'var(--border-subtle)' }} />
 
       {/* Transactions section */}
       <div>
@@ -143,9 +143,9 @@ export default function InicioTab({
             onClick={onFilterTap}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-medium press"
             style={{
-              background: hasActiveFilters ? 'rgba(167,139,250,0.18)' : 'rgba(255,255,255,0.06)',
-              border: `1px solid ${hasActiveFilters ? 'rgba(167,139,250,0.35)' : 'rgba(255,255,255,0.09)'}`,
-              color: hasActiveFilters ? '#A78BFA' : 'rgba(245,245,255,0.50)',
+              background: hasActiveFilters ? 'var(--accent-soft)' : 'var(--surface)',
+              border: `1px solid ${hasActiveFilters ? 'var(--accent-border)' : 'var(--border)'}`,
+              color: hasActiveFilters ? 'var(--accent)' : 'var(--text-muted)',
             }}
           >
             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -186,7 +186,7 @@ export default function InicioTab({
               const isExiting = exiting === tx.id;
               const isIngreso = tx.type === 'Ingreso';
               const amountColor = isIngreso ? 'var(--color-ingreso)' : 'var(--color-egreso)';
-              const dotBg = isIngreso ? 'rgba(52,211,153,0.15)' : 'rgba(248,113,113,0.15)';
+              const dotBg = isIngreso ? 'var(--income-bg)' : 'var(--expense-bg)';
 
               return (
                 /* Animation wrapper — collapses + fades when this card is being deleted */
@@ -206,8 +206,8 @@ export default function InicioTab({
                   <div
                     className="relative overflow-hidden rounded-2xl"
                     style={{
-                      border: '1px solid rgba(255,255,255,0.08)',
-                      ...(isOwn ? { borderLeft: '3px solid rgba(167,139,250,0.35)' } : {}),
+                      border: '1px solid var(--border)',
+                      ...(isOwn ? { borderLeft: '3px solid var(--accent-border)' } : {}),
                     }}
                   >
                     {/* Red delete zone — sits BEHIND the card (z-index: 1), revealed on swipe */}
@@ -304,13 +304,13 @@ export default function InicioTab({
                 onClick={onViewAll}
                 className="w-full py-3 rounded-2xl text-[14px] font-medium press flex items-center justify-center gap-1.5"
                 style={{
-                  background: 'rgba(167,139,250,0.07)',
-                  border: '1px solid rgba(167,139,250,0.15)',
-                  color: '#A78BFA',
+                  background: 'var(--accent-soft)',
+                  border: '1px solid var(--accent-border)',
+                  color: 'var(--accent)',
                 }}
               >
-                {t('inicio_ver_todo')} →
-                <span className="text-[12px]" style={{ color: 'rgba(167,139,250,0.50)' }}>
+                {t('inicio_ver_todo')}
+                <span className="text-[12px] tx-amount" style={{ color: 'var(--accent)' }}>
                   · {sorted.length - PREVIEW_COUNT} {t('inicio_restantes')}
                 </span>
               </button>
@@ -336,9 +336,9 @@ export default function InicioTab({
 
             {/* Transaction preview */}
             <div className="flex items-center gap-3 p-3 rounded-2xl mb-5"
-              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)' }}>
+              style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
               <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
-                style={{ background: confirmTx.type === 'Ingreso' ? 'rgba(52,211,153,0.15)' : 'rgba(248,113,113,0.15)' }}>
+                style={{ background: confirmTx.type === 'Ingreso' ? 'var(--income-bg)' : 'var(--expense-bg)' }}>
                 {confirmTx.type === 'Ingreso' ? '↑' : '↓'}
               </div>
               <div className="flex-1 min-w-0">
@@ -362,7 +362,7 @@ export default function InicioTab({
               <button
                 onClick={() => { snapCard(confirmTx.id, false); setOpenId(null); setConfirmTx(null); }}
                 className="flex-1 py-3 rounded-2xl text-[15px] font-semibold press"
-                style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(245,245,255,0.70)' }}
+                style={{ background: 'var(--surface-el)', color: 'var(--text-secondary)' }}
               >
                 {t('delete_cancel')}
               </button>

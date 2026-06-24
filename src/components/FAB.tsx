@@ -63,8 +63,8 @@ export default function FAB({ onIngreso, onEgreso }: FABProps) {
           onClick={expanded ? close : open}
           className="w-14 h-14 rounded-full flex items-center justify-center shadow-xl press"
           style={{
-            background: '#A78BFA',
-            boxShadow: '0 0 0 0 rgba(167,139,250,0)',
+            background: 'var(--accent)',
+            boxShadow: '0 4px 16px var(--fab-shadow)',
           }}
           aria-label="Nueva transacción"
         >

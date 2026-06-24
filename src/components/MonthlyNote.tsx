@@ -265,7 +265,7 @@ export default function MonthlyNote({ userId, profiles }: MonthlyNoteProps) {
           <button
             onClick={() => { handleBlur(); setMySheetOpen(false); }}
             className="w-full h-[52px] rounded-full text-[15px] font-semibold text-white press"
-            style={{ background: '#A78BFA' }}
+            style={{ background: 'var(--accent)' }}
           >
             Listo
           </button>
