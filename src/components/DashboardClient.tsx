@@ -58,7 +58,7 @@ export default function DashboardClient({ userEmail, userId }: DashboardClientPr
       if (filters.dateTo && tx.date > filters.dateTo) return false;
       if (filters.type !== 'All' && tx.type !== filters.type) return false;
       if (filters.category !== 'All' && tx.category !== filters.category) return false;
-      if (filters.responsible !== 'All' && tx.responsible !== filters.responsible) return false;
+      if (filters.responsible !== 'All' && tx.user_id !== filters.responsible) return false;
       return true;
     });
   }, [transactions, filters]);
@@ -291,6 +291,7 @@ export default function DashboardClient({ userEmail, userId }: DashboardClientPr
         transactions={transactions}
         filters={filters}
         onChange={setFilters}
+        profiles={profiles}
       />
     </>
   );
