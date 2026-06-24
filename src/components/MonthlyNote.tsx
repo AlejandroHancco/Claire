@@ -210,7 +210,7 @@ export default function MonthlyNote({ userId, profiles }: MonthlyNoteProps) {
             className="text-[12px] leading-relaxed line-clamp-3"
             style={{ color: partnerNote?.note ? 'rgba(245,245,255,0.55)' : 'rgba(245,245,255,0.20)' }}
           >
-            {partnerNote?.note || 'Sin nota aún'}
+            {partnerNote?.note || 'Nothing written yet.'}
           </p>
         </button>
       </div>
