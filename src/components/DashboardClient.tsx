@@ -249,6 +249,7 @@ export default function DashboardClient({ userEmail, userId }: DashboardClientPr
             <EstadisticasTab
               transactions={transactions}
               userId={userId}
+              theme={currentProfile?.theme === 'pink' ? 'pink' : 'dark'}
               openHistory={openHistory}
               onHistoryOpened={() => setOpenHistory(false)}
             />

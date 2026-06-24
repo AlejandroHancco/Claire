@@ -15,23 +15,15 @@ import BottomSheet from '@/components/BottomSheet';
 interface EstadisticasTabProps {
   transactions: Transaction[];
   userId: string;
+  theme?: 'dark' | 'pink';
   openHistory?: boolean;
   onHistoryOpened?: () => void;
 }
 
 type DateRange = '1M' | '3M' | '6M' | 'Todo';
 
-const COLORS = ['#A78BFA', '#34D399', '#F87171', '#60A5FA', '#FBBF24', '#F472B6', '#4ADE80', '#C084FC'];
-
-const tooltipStyle = {
-  background: 'rgba(14,14,26,0.95)',
-  border: '1px solid rgba(255,255,255,0.10)',
-  borderRadius: '12px',
-  color: '#F5F5FF',
-  fontSize: '12px',
-};
-
-const axisStyle = { fill: 'rgba(245,245,255,0.35)', fontSize: 11 };
+const DARK_COLORS = ['#A78BFA', '#34D399', '#F87171', '#60A5FA', '#FBBF24', '#F472B6', '#4ADE80', '#C084FC'];
+const PINK_COLORS = ['#E84A8A', '#00936B', '#7B2FF7', '#1565C0', '#D97706', '#C62828', '#00838F', '#9333EA'];
 
 function formatYAxis(v: number): string {
   const abs = Math.abs(v);
@@ -83,10 +75,35 @@ const DEFAULT_HIST_FILTERS: TransactionFilters = {
 export default function EstadisticasTab({
   transactions,
   userId,
+  theme = 'dark',
   openHistory,
   onHistoryOpened,
 }: EstadisticasTabProps) {
   const { t, tCat } = useLanguage();
+  const isPink = theme === 'pink';
+
+  const ct = {
+    colors: isPink ? PINK_COLORS : DARK_COLORS,
+    accent:  isPink ? '#E84A8A' : '#A78BFA',
+    income:  isPink ? '#00936B' : '#34D399',
+    expense: isPink ? '#D13A78' : '#F87171',
+    axisText: isPink ? '#7A4458' : 'rgba(245,245,255,0.40)',
+    grid:     isPink ? '#F0BBCC' : 'rgba(255,255,255,0.05)',
+    legend:   isPink ? '#7A4458' : 'rgba(245,245,255,0.60)',
+    cardBg:   isPink ? 'var(--surface)' : 'rgba(255,255,255,0.04)',
+    cardBd:   isPink ? 'var(--border)' : 'rgba(255,255,255,0.08)',
+    tooltipBg: isPink ? 'rgba(255,245,250,0.98)' : 'rgba(14,14,26,0.95)',
+    tooltipBd: isPink ? '#F0A8C8' : 'rgba(255,255,255,0.10)',
+    tooltipTx: isPink ? '#2A0E1C' : '#F5F5FF',
+  };
+  const axisStyle = { fill: ct.axisText, fontSize: 11 as const };
+  const tooltipStyle = {
+    background: ct.tooltipBg,
+    border: `1px solid ${ct.tooltipBd}`,
+    borderRadius: '12px',
+    color: ct.tooltipTx,
+    fontSize: '12px',
+  };
   const [range, setRange] = useState<DateRange>('6M');
   const [historyOpen, setHistoryOpen] = useState(false);
   const [histFilters, setHistFilters] = useState<TransactionFilters>(DEFAULT_HIST_FILTERS);
@@ -250,12 +267,12 @@ export default function EstadisticasTab({
         <div className="space-y-6 px-4">
           {/* ── Monthly bar chart ─────────────────────────────────────────── */}
           <div className="rounded-2xl p-4"
-            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+            style={{ background: ct.cardBg, border: `1px solid ${ct.cardBd}` }}>
             <p className="text-[13px] font-semibold mb-1" style={{ color: '#F5F5FF' }}>{t('stats_ing_vs_egr')}</p>
             <p className="text-[12px] mb-4" style={{ color: 'rgba(245,245,255,0.40)' }}>{t('stats_por_mes')}</p>
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={monthlyData} barCategoryGap="30%" barGap={3} margin={{ top: 16 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke={ct.grid} vertical={false} />
                 <XAxis dataKey="name" tick={axisStyle} axisLine={false} tickLine={false} />
                 <YAxis
                   tick={axisStyle} axisLine={false} tickLine={false}
@@ -263,15 +280,15 @@ export default function EstadisticasTab({
                   domain={[0, barMax]}
                 />
                 <Tooltip contentStyle={tooltipStyle} formatter={v => formatCurrency(Number(v ?? 0))} />
-                <Bar dataKey={ingLabel} fill="#34D399" radius={[5, 5, 0, 0]} />
-                <Bar dataKey={egrLabel} fill="#F87171" radius={[5, 5, 0, 0]} />
+                <Bar dataKey={ingLabel} fill={ct.income} radius={[5, 5, 0, 0]} />
+                <Bar dataKey={egrLabel} fill={ct.expense} radius={[5, 5, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
 
           {/* ── Category pie chart ────────────────────────────────────────── */}
           <div className="rounded-2xl p-4"
-            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+            style={{ background: ct.cardBg, border: `1px solid ${ct.cardBd}` }}>
             <p className="text-[13px] font-semibold mb-1" style={{ color: '#F5F5FF' }}>{t('stats_por_categoria')}</p>
             {categoryData.length === 0 ? (
               <p className="text-center text-[14px] py-8" style={{ color: 'rgba(245,245,255,0.30)' }}>
@@ -285,9 +302,9 @@ export default function EstadisticasTab({
                     <Pie data={categoryData} cx="50%" cy="42%" innerRadius={55} outerRadius={88}
                       paddingAngle={3} dataKey="value"
                       label={({ percent }) => `${((percent ?? 0) * 100).toFixed(0)}%`} labelLine={false}>
-                      {categoryData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                      {categoryData.map((_, i) => <Cell key={i} fill={ct.colors[i % ct.colors.length]} />)}
                     </Pie>
-                    <Legend formatter={v => <span style={{ color: 'rgba(245,245,255,0.60)', fontSize: 11 }}>{v}</span>} />
+                    <Legend formatter={v => <span style={{ color: ct.legend, fontSize: 11 }}>{v}</span>} />
                     <Tooltip contentStyle={tooltipStyle} formatter={v => formatCurrency(Number(v ?? 0))} />
                   </PieChart>
                 </ResponsiveContainer>
@@ -297,12 +314,12 @@ export default function EstadisticasTab({
 
           {/* ── Balance trend ─────────────────────────────────────────────── */}
           <div className="rounded-2xl p-4"
-            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+            style={{ background: ct.cardBg, border: `1px solid ${ct.cardBd}` }}>
             <p className="text-[13px] font-semibold mb-1" style={{ color: '#F5F5FF' }}>{t('stats_tendencia')}</p>
             <p className="text-[12px] mb-4" style={{ color: 'rgba(245,245,255,0.40)' }}>{t('stats_balance_mensual')}</p>
             <ResponsiveContainer width="100%" height={200}>
               <LineChart data={trendData} margin={{ top: 16 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke={ct.grid} vertical={false} />
                 <XAxis dataKey="name" tick={axisStyle} axisLine={false} tickLine={false} />
                 <YAxis
                   tick={axisStyle} axisLine={false} tickLine={false}
@@ -310,9 +327,9 @@ export default function EstadisticasTab({
                   domain={[trendMin, trendMax]}
                 />
                 <Tooltip contentStyle={tooltipStyle} formatter={v => formatCurrency(Number(v ?? 0))} />
-                <Line type="monotone" dataKey={balLabel} stroke="#A78BFA" strokeWidth={2.5}
-                  dot={{ fill: '#A78BFA', r: 4, strokeWidth: 0 }}
-                  activeDot={{ r: 6, fill: '#A78BFA' }} />
+                <Line type="monotone" dataKey={balLabel} stroke={ct.accent} strokeWidth={2.5}
+                  dot={{ fill: ct.accent, r: 4, strokeWidth: 0 }}
+                  activeDot={{ r: 6, fill: ct.accent }} />
               </LineChart>
             </ResponsiveContainer>
           </div>

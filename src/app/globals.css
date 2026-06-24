@@ -250,6 +250,12 @@ html.pink header svg           { color: var(--text-secondary) !important; }
 /* Amount spans use semantic color variable */
 html.pink .tx-amount           { color: inherit; }
 
+/* Input value text — must be readable on white/pink surfaces */
+html.pink input,
+html.pink textarea {
+  color: var(--text-primary) !important;
+}
+
 /* Placeholder text */
 html.pink input::placeholder,
 html.pink textarea::placeholder {
