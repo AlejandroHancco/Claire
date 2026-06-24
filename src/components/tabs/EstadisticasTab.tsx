@@ -256,7 +256,6 @@ export default function EstadisticasTab({
       {/* Empty state */}
       {filtered.length === 0 && (
         <div className="px-4 py-14 text-center">
-          <p className="text-[32px] mb-3">📊</p>
           <p className="text-[15px] font-medium" style={{ color: 'rgba(245,245,255,0.45)' }}>
             {t('stats_sin_datos')}
           </p>

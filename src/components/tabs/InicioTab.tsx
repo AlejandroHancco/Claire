@@ -168,7 +168,6 @@ export default function InicioTab({
         {/* Empty state */}
         {!loading && filteredTransactions.length === 0 && (
           <div className="px-4 py-12 text-center">
-            <p className="text-[32px] mb-3">🪙</p>
             <p className="text-[15px] font-medium" style={{ color: 'rgba(245,245,255,0.45)' }}>
               {hasActiveFilters ? t('inicio_sin_resultados') : t('inicio_sin_movimientos')}
             </p>
