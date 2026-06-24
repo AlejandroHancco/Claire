@@ -118,6 +118,7 @@ const es = {
   error_cargar_tx: 'Error al cargar las transacciones',
   error_eliminar: 'Error al eliminar la transacción',
   exito_eliminado: 'Deleted transaction',
+  meta_eliminar: 'Eliminar meta',
 
   // Category display names
   cat_Sueldo: 'Sueldo',
@@ -202,6 +203,7 @@ const en: TranslationMap = {
   inicio_ajusta_filtros: 'Adjust filters to see more',
   inicio_cargar_mas: 'Load',
   inicio_restantes: 'remaining',
+  meta_eliminar: 'Delete goal',
 
   hero_balance: 'Monthly balance',
   inicio_ver_todo: 'View all',
