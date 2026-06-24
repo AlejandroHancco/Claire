@@ -18,11 +18,14 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'Claire — Control Financiero',
+  title: 'Claire',
   description: 'Seguimiento privado de ingresos y egresos',
+  icons: {
+    apple: '/logoClaire.png',
+  },
   appleWebApp: {
     capable: true,
-    statusBarStyle: 'default',
+    statusBarStyle: 'black-translucent',
     title: 'Claire',
   },
 };

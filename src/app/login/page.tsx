@@ -39,12 +39,10 @@ export default function LoginPage() {
 
       <div className="w-full max-w-[320px]">
         {/* Wordmark */}
-        <div className="text-center mb-10">
-          <div className="text-5xl mb-3">💜</div>
+        <div className="text-center mb-4">
+          <img src="/logoinvisibleClaire.png" className="w-16 h-16 mb-3 mx-auto" alt="" />
           <h1 className="text-[34px] font-bold tracking-tight" style={{ color: '#F5F5FF' }}>Claire</h1>
-          <p className="text-[14px] mt-1" style={{ color: 'rgba(245,245,255,0.40)' }}>
-            Finanzas compartidas
-          </p>
+
         </div>
 
         {/* Glass card */}
