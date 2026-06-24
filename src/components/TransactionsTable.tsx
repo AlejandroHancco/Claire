@@ -147,7 +147,7 @@ export default function TransactionsTable({
                     </svg>
                   ) : (
                     <>
-                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m-7 0H4m4 0V4a1 1 0 011-1h2a1 1 0 011 1v3" />
                       </svg>
                     </>
