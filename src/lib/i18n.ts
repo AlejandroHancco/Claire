@@ -92,8 +92,8 @@ const es = {
   perfil_foto_error: 'Error al subir la foto',
   perfil_foto_exito: 'Foto actualizada',
   perfil_preferencias: 'Preferencias',
-  tema_oscuro: 'Oscuro',
-  tema_rosa: 'Rosa',
+  tema_oscuro: 'Noire',
+  tema_rosa: 'Claire',
 
   // Filters
   filtros_titulo: 'Filtros',

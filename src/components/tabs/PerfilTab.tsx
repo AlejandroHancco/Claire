@@ -108,7 +108,7 @@ export default function PerfilTab({ userId, userEmail, currentProfile, onProfile
   const handleLangChange = (l: Lang) => {
     if (l === lang) return;
     setLang(l);
-    toast.success(l === 'es' ? '🇵🇪 Español' : '🇺🇸 English', { duration: 1500 });
+    toast.success(l === 'es' ? 'Español' : 'English', { duration: 1500 });
     // Background save — requires: ALTER TABLE profiles ADD COLUMN IF NOT EXISTS language TEXT
     supabase.from('profiles').update({ language: l }).eq('id', userId).then(() => {
       onProfileUpdate({
