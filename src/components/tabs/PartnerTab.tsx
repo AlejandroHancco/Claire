@@ -98,11 +98,11 @@ function ProfileCard({ profile, stats, isMe, labels }: {
         </div>
         <div className="flex justify-between items-center">
           <span className="text-[12px]" style={{ color: 'rgba(245,245,255,0.40)' }}>{labels.ingresos}</span>
-          <span className="text-[13px] font-semibold" style={{ color: '#34D399' }}>{formatCurrency(stats.ingreso)}</span>
+          <span className="text-[13px] font-semibold tabular-nums" style={{ color: '#34D399' }}>{formatCurrency(stats.ingreso)}</span>
         </div>
         <div className="flex justify-between items-center">
           <span className="text-[12px]" style={{ color: 'rgba(245,245,255,0.40)' }}>{labels.egresos}</span>
-          <span className="text-[13px] font-semibold" style={{ color: '#F87171' }}>{formatCurrency(stats.egreso)}</span>
+          <span className="text-[13px] font-semibold tabular-nums" style={{ color: '#F87171' }}>{formatCurrency(stats.egreso)}</span>
         </div>
         <div className="flex justify-between items-center pt-2 mt-1"
           style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>

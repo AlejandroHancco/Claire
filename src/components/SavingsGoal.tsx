@@ -177,12 +177,12 @@ function AddSavingsSheet({ isOpen, onClose, onAdd, currentAmount, targetAmount }
         >
           <div className="text-center">
             <p style={{ color: 'rgba(245,245,255,0.40)' }}>Acumulado</p>
-            <p className="font-semibold mt-1" style={{ color: '#34D399' }}>{formatCurrency(currentAmount)}</p>
+            <p className="font-semibold tabular-nums mt-1" style={{ color: '#34D399' }}>{formatCurrency(currentAmount)}</p>
           </div>
           <div className="w-px" style={{ background: 'rgba(255,255,255,0.08)' }} />
           <div className="text-center">
             <p style={{ color: 'rgba(245,245,255,0.40)' }}>Falta</p>
-            <p className="font-semibold mt-1" style={{ color: '#F5F5FF' }}>{formatCurrency(remaining)}</p>
+            <p className="font-semibold tabular-nums mt-1" style={{ color: '#F5F5FF' }}>{formatCurrency(remaining)}</p>
           </div>
         </div>
 
@@ -391,7 +391,7 @@ export default function SavingsGoal({ userId }: SavingsGoalProps) {
             <span className="text-[11px] font-medium" style={{ color: barColor }}>
               {percentage.toFixed(0)}%
             </span>
-            {isComplete && <span className="text-[11px]" style={{ color: '#34D399' }}>¡Meta alcanzada! 🎉</span>}
+            {isComplete && <span className="text-[11px]" style={{ color: '#34D399' }}>¡Meta alcanzada! </span>}
           </div>
         </div>
       </div>

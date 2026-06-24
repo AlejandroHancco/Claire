@@ -297,7 +297,6 @@ export default function PerfilTab({ userId, userEmail, currentProfile, onProfile
           style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)' }}
         >
           <div className="flex items-center gap-3">
-            <span className="text-xl">{theme === 'pink' ? '🌸' : '🌙'}</span>
             <p className="text-[14px] font-medium" style={{ color: '#F5F5FF' }}>{t('perfil_tema')}</p>
           </div>
           <div
@@ -333,7 +332,6 @@ export default function PerfilTab({ userId, userEmail, currentProfile, onProfile
           style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)' }}
         >
           <div className="flex items-center gap-3">
-            <span className="text-xl">🌐</span>
             <p className="text-[14px] font-medium" style={{ color: '#F5F5FF' }}>{t('perfil_idioma')}</p>
           </div>
           <div

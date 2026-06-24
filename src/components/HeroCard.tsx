@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface HeroCardProps {
   ingresos: number;
@@ -41,6 +42,7 @@ function formatBalanceRaw(n: number): string {
 }
 
 export default function HeroCard({ ingresos, egresos, balance, loading }: HeroCardProps) {
+  const { t } = useLanguage();
   const animatedBalance = useCountUp(balance);
   const animatedIngresos = useCountUp(ingresos, 600);
   const animatedEgresos = useCountUp(egresos, 600);
@@ -62,12 +64,12 @@ export default function HeroCard({ ingresos, egresos, balance, loading }: HeroCa
         style={{ background: 'radial-gradient(circle, rgba(167,139,250,0.15) 0%, transparent 70%)' }}
       />
 
-      {/* Label */}
+      {/* Label — translated */}
       <p
         className="text-[11px] font-medium uppercase tracking-widest mb-3"
         style={{ color: 'rgba(245,245,255,0.40)' }}
       >
-        Balance del mes
+        {t('hero_balance')}
       </p>
 
       {/* Main balance */}
@@ -75,7 +77,13 @@ export default function HeroCard({ ingresos, egresos, balance, loading }: HeroCa
         <div className="h-12 w-48 rounded-xl animate-pulse" style={{ background: 'rgba(255,255,255,0.08)' }} />
       ) : (
         <div className="flex items-baseline gap-1 mb-4">
-          <span className="text-[15px] font-medium" style={{ color: 'rgba(245,245,255,0.55)' }}>S/</span>
+          {/* S/ is bold at ~45% of the number size for consistent weight relationship */}
+          <span
+            className="font-bold tabular-nums"
+            style={{ fontSize: '18px', color: isPositive ? 'rgba(245,245,255,0.65)' : '#F87171' }}
+          >
+            S/
+          </span>
           <span
             className="font-bold leading-none tabular-nums"
             style={{ fontSize: '40px', color: isPositive ? '#F5F5FF' : '#F87171', letterSpacing: '-0.02em' }}
@@ -92,7 +100,7 @@ export default function HeroCard({ ingresos, egresos, balance, loading }: HeroCa
           style={{ background: 'rgba(52,211,153,0.12)', border: '1px solid rgba(52,211,153,0.20)' }}
         >
           <span className="text-[11px]" style={{ color: '#34D399' }}>↑</span>
-          <span className="text-[12px] font-medium tabular-nums" style={{ color: '#34D399' }}>
+          <span className="text-[12px] font-semibold tabular-nums" style={{ color: '#34D399' }}>
             S/ {formatBalanceRaw(animatedIngresos)}
           </span>
         </div>
@@ -102,7 +110,7 @@ export default function HeroCard({ ingresos, egresos, balance, loading }: HeroCa
           style={{ background: 'rgba(248,113,113,0.12)', border: '1px solid rgba(248,113,113,0.20)' }}
         >
           <span className="text-[11px]" style={{ color: '#F87171' }}>↓</span>
-          <span className="text-[12px] font-medium tabular-nums" style={{ color: '#F87171' }}>
+          <span className="text-[12px] font-semibold tabular-nums" style={{ color: '#F87171' }}>
             S/ {formatBalanceRaw(animatedEgresos)}
           </span>
         </div>

@@ -18,7 +18,8 @@ html {
   --header-bg:   rgba(6, 6, 16, 0.80);
   --drop-bg:     rgba(18, 18, 32, 0.95);
   /* Opaque surface for swipeable cards — must fully hide content behind them */
-  --card-surface: #12121E;
+  --card-surface: #1C1C2E;
+  --card-surface-own: #1F1A38;
 }
 
 html.pink {
@@ -52,7 +53,8 @@ html.pink {
   --shimmer-clr: #E91E8C;
   --header-bg:   rgba(253, 232, 242, 0.90);
   --drop-bg:     rgba(249, 215, 232, 0.98);
-  --card-surface: #FDE8F2;
+  --card-surface: #F3C8DC;
+  --card-surface-own: #EDB5CC;
 }
 
 /* ── Reset & base ─────────────────────────────────────────────── */
@@ -68,8 +70,7 @@ body {
   background-attachment: fixed;
   min-height: 100dvh;
   color: #F5F5FF;
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text',
-               var(--font-display, 'Plus Jakarta Sans'), var(--font-body, 'Inter'), sans-serif;
+  font-family: var(--font-body), -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   transition: background 380ms ease;

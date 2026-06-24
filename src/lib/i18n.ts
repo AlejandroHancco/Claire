@@ -39,6 +39,7 @@ const es = {
 
   // Hero card
   hero_balance: 'Balance del mes',
+  inicio_ver_todo: 'Ver todo',
 
   // Partner tab
   partner_titulo: 'Pareja',
@@ -53,6 +54,7 @@ const es = {
   partner_combinados: 'Totales combinados',
 
   // Stats tab
+  stats_historial: 'Historial',
   stats_titulo: 'Estadísticas',
   stats_subtitulo: 'Análisis de tus finanzas',
   stats_sin_datos: 'Sin datos para este período',
@@ -103,6 +105,11 @@ const es = {
   filtros_seleccionar: 'Seleccionar',
   filtros_limpiar: 'Limpiar filtros',
   filtros_aplicar: 'Aplicar',
+
+  // Delete confirmation
+  delete_title: '¿Eliminar esta transacción?',
+  delete_cancel: 'Cancelar',
+  delete_confirm_btn: 'Eliminar',
 
   // Common
   error_cargar_tx: 'Error al cargar las transacciones',
@@ -170,6 +177,7 @@ const en: TranslationMap = {
   inicio_restantes: 'remaining',
 
   hero_balance: 'Monthly balance',
+  inicio_ver_todo: 'View all',
 
   partner_titulo: 'Partner',
   partner_subtitulo: 'Individual summary per user',
@@ -182,6 +190,7 @@ const en: TranslationMap = {
   partner_sin_usuario: 'No second user yet',
   partner_combinados: 'Combined totals',
 
+  stats_historial: 'History',
   stats_titulo: 'Statistics',
   stats_subtitulo: 'Your financial analysis',
   stats_sin_datos: 'No data for this period',
@@ -215,8 +224,8 @@ const en: TranslationMap = {
   perfil_sesion_cerrada: 'Signed out',
   perfil_foto_error: 'Error uploading photo',
   perfil_foto_exito: 'Photo updated',
-  tema_oscuro: 'Dark',
-  tema_rosa: 'Pink',
+  tema_oscuro: 'Noire',
+  tema_rosa: 'Claire',
 
   filtros_titulo: 'Filters',
   filtros_tipo: 'Type',
@@ -230,6 +239,10 @@ const en: TranslationMap = {
   filtros_seleccionar: 'Select',
   filtros_limpiar: 'Clear filters',
   filtros_aplicar: 'Apply',
+
+  delete_title: 'Delete this transaction?',
+  delete_cancel: 'Cancel',
+  delete_confirm_btn: 'Delete',
 
   error_cargar_tx: 'Error loading transactions',
   error_eliminar: 'Error deleting transaction',
