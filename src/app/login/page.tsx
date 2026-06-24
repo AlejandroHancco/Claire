@@ -57,9 +57,9 @@ export default function LoginPage() {
           <form onSubmit={handleLogin} className="space-y-6">
             {/* Email */}
             <div className="relative">
-              <label className="block text-[11px] font-medium uppercase tracking-widest mb-3"
-                style={{ color: 'rgba(245,245,255,0.40)' }}>
-                Correo electrónico
+              <label className="block text-[11px] font-bold uppercase tracking-widest mb-3"
+                     style={{ color: 'rgba(245,245,255,0.40)' }}>
+                Email
               </label>
               <input
                 type="email"
@@ -78,9 +78,9 @@ export default function LoginPage() {
 
             {/* Password */}
             <div className="relative">
-              <label className="block text-[11px] font-medium uppercase tracking-widest mb-3"
-                style={{ color: 'rgba(245,245,255,0.40)' }}>
-                Contraseña
+              <label className="block text-[11px] font-bold uppercase tracking-widest mb-3"
+                     style={{ color: 'rgba(245,245,255,0.40)' }}>
+                Password
               </label>
               <input
                 type="password"

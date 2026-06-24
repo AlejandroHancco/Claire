@@ -66,8 +66,8 @@ export default function HeroCard({ ingresos, egresos, balance, loading }: HeroCa
 
       {/* Label — translated */}
       <p
-        className="text-[11px] font-medium uppercase tracking-widest mb-3"
-        style={{ color: 'rgba(245,245,255,0.40)' }}
+          className="text-[11px] font-bold mb-3 uppercase"
+          style={{ color: 'var(--text-muted)' }}
       >
         {t('hero_balance')}
       </p>
